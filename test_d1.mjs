@@ -1,0 +1,16 @@
+import { getPlatformProxy } from "wrangler";
+import { createHandler } from "./src/core.mjs";
+import { d1Store, SCHEMA } from "./src/d1store.mjs";
+const { env, dispose } = await getPlatformProxy({ configPath: "./wrangler.jsonc", persist: false });
+await env.DB.prepare(SCHEMA).run();
+const ok = (c, m) => { if (!c) { console.error("FAIL", m); process.exitCode = 1 } else console.log("ok", m) };
+const h = createHandler(() => d1Store(env.DB), { ADMIN_USERNAME: "Boss", ADMIN_PASSWORD: "S3cret!x", PASSWORD_VAULT_KEY: "vk" });
+let n = 0; const call = async (b, t) => (await h(new Request("http://x/api", { method: "POST", headers: { ...(t ? { authorization: "Bearer " + t } : {}), "cf-connecting-ip": "5.5.5." + (++n) }, body: JSON.stringify(b) }))).json();
+let r = await call({ action: "register", username: "kofi", password: "Strong#pass1", phone: "0241234567", fullName: "Kofi A" }); ok(r.ok && r.pending, "register through D1");
+const adm = (await call({ action: "login", username: "boss", password: "S3cret!x" })).token;
+await call({ action: "approveAll" }, adm);
+const tok = (await call({ action: "login", username: "kofi", password: "Strong#pass1" })).token; ok(!!tok, "learner signs in");
+r = await call({ action: "lessonSave", subject: "ga", title: "Ga greetings", pages: [{ title: "a", body: "b" }], questions: [{ t: "mcq", q: "q", o: ["a", "b"], c: 0 }], status: "published" }, adm); ok(r.ok, "lesson saved in D1");
+r = await call({ action: "lessonList" }, tok); ok(r.lessons.length === 1, "lesson listed from D1");
+r = await call({ action: "lessonGet", id: r.lessons[0].id }, tok); ok(r.lesson.questions.length === 1, "lesson read from D1");
+await dispose();

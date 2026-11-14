@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>BECE Prep Zone</title>
+<meta name="description" content="Fun BECE revision for Integrated Science, Mathematics and Ga."><meta name="theme-color" content="#6d3fe0">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>:root{--r:18px}
+[data-theme=sunny]{--bg:#fff8e6;--bg2:#ffe3a3;--card:#fff;--card2:#fff4cf;--ink:#2a2352;--muted:#655d8a;--line:#ffdf91;--brand:#6d3fe0;--brand2:#e8477a;--accent:#0a9b7a;--on:#fff;--ok:#0a8a66;--okbg:#d8f6ec;--bad:#d1334a;--badbg:#ffe2e6;--sel:#fff0b5;--shadow:0 3px 0 rgba(109,63,224,.08),0 16px 32px -18px rgba(109,63,224,.45);color-scheme:light}
+[data-theme=candy]{--bg:#fff0fa;--bg2:#fbd0ee;--card:#fff;--card2:#ffe8f7;--ink:#3b1245;--muted:#7a4f8d;--line:#f5c3e8;--brand:#b01e95;--brand2:#7c3aed;--accent:#0e8f9b;--on:#fff;--ok:#0b8a63;--okbg:#d9f6ec;--bad:#cf2f4a;--badbg:#ffe2e8;--sel:#ffe0f5;--shadow:0 3px 0 rgba(176,30,149,.08),0 16px 32px -18px rgba(176,30,149,.45);color-scheme:light}
+[data-theme=ocean]{--bg:#e8f6ff;--bg2:#b8e4ff;--card:#fff;--card2:#dff1ff;--ink:#0d2b4a;--muted:#46637f;--line:#b5daf5;--brand:#0b6fc2;--brand2:#0aa6a6;--accent:#e07a00;--on:#fff;--ok:#0a8a66;--okbg:#d8f6ec;--bad:#c92a42;--badbg:#ffe2e6;--sel:#cfeaff;--shadow:0 3px 0 rgba(11,111,194,.08),0 16px 32px -18px rgba(11,111,194,.45);color-scheme:light}
+[data-theme=jungle]{--bg:#effbe9;--bg2:#c7efb5;--card:#fff;--card2:#e3f7d8;--ink:#17361d;--muted:#47664b;--line:#bfe3ae;--brand:#1f8a3b;--brand2:#d97706;--accent:#7c3aed;--on:#fff;--ok:#0a7d4f;--okbg:#d3f5e3;--bad:#c92a42;--badbg:#ffe2e6;--sel:#d9f5c6;--shadow:0 3px 0 rgba(31,138,59,.08),0 16px 32px -18px rgba(31,138,59,.45);color-scheme:light}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 'Fredoka','Segoe UI',system-ui,sans-serif;min-height:100vh}
+h1,h2,h3{margin:0;line-height:1.2}button,input,select,textarea{font:inherit;color:inherit}
+.hide{display:none!important}.wrap{width:min(960px,100%);margin:0 auto;padding:0 16px}
+:focus-visible{outline:3px solid var(--brand2);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:10px 20px;border:2px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);font-weight:600;cursor:pointer;transition:transform .1s}
+.btn:hover:not(:disabled){transform:translateY(-2px)}.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.primary{background:linear-gradient(120deg,var(--brand),var(--brand2));color:var(--on);border-color:transparent;box-shadow:var(--shadow)}
+.btn.good{background:var(--ok);color:#fff;border-color:transparent}.btn.danger{background:var(--badbg);color:var(--bad);border-color:transparent}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:15px;border-radius:12px}.btn.big{min-height:56px;font-size:20px;padding:12px 28px}
+.link{background:none;border:0;color:var(--brand);text-decoration:underline;cursor:pointer;padding:0}
+input,select,textarea{width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:#fff;color:#222}
+textarea{min-height:100px;resize:vertical}label.f{display:block;font-weight:600;margin:10px 0 0}label.f input,label.f select,label.f textarea{margin-top:6px;font-weight:400}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:620px){.two{grid-template-columns:1fr}}
+.panel{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:20px;margin:16px 0;box-shadow:var(--shadow)}
+.panel h3{margin-bottom:6px}.hint,.meta{color:var(--muted);font-size:14px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0}
+.msg{padding:10px 14px;border-radius:14px;margin:10px 0;font-weight:500}.msg.err{background:var(--badbg);color:var(--bad)}.msg.okm{background:var(--okbg);color:var(--ok)}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:999px;z-index:80;font-weight:600;max-width:90vw}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:700;background:var(--okbg);color:var(--ok);margin-left:6px}.badge.d{background:var(--badbg);color:var(--bad)}.badge.a{background:var(--sel);color:var(--brand)}
+.tag{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--sel);color:var(--brand)}.tag.new{background:var(--brand2);color:#fff}
+.chips{display:flex;gap:8px;flex-wrap:wrap}.cchip{display:inline-flex;align-items:center;gap:6px;background:var(--card2);border-radius:999px;padding:4px 12px;font-weight:600}
+.cchip.ok{background:var(--ok);color:#fff}
+.ucard{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;padding:12px 0;border-top:1px solid var(--line)}
+/* hero + nav */
+.hero{background:linear-gradient(130deg,var(--brand),var(--brand2));color:#fff;border-radius:0 0 32px 32px;box-shadow:var(--shadow)}
+.hero .wrap{padding-top:18px;padding-bottom:20px}.hero h1{font-size:clamp(26px,6vw,38px)}.lede{margin:6px 0 0;opacity:.96}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.brandn{font-weight:700;font-size:18px}
+.herorow{display:flex;gap:16px;align-items:center}.mascot{font-size:72px;line-height:1;display:inline-block;animation:bob 3.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-5deg)}}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.stat{background:rgba(255,255,255,.22);border-radius:18px;padding:8px 14px;min-width:96px}.stat b{font-size:24px;display:block}.stat small{opacity:.95}
+.lvl{min-width:180px;flex:1}.sprog{display:block;height:8px;background:rgba(255,255,255,.3);border-radius:6px;overflow:hidden;margin-top:6px}.sprog i{display:block;height:100%;background:#fff;border-radius:6px}
+.hero .btn{background:rgba(255,255,255,.2);color:#fff;border-color:transparent}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:2px solid var(--line);display:flex;justify-content:space-around;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:50}
+.bnav button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:0;font-weight:600;font-size:13px;color:var(--muted);padding:4px 18px;border-radius:14px;cursor:pointer;position:relative}
+.bnav button.on{color:var(--brand);background:var(--card2)}.bnav .em{font-size:24px;line-height:1.1}
+.dot{position:absolute;top:0;right:10px;background:var(--bad);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px}
+main.wrap{padding-bottom:110px}
+.subjgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px;margin:20px 0}
+.subj{display:flex;gap:14px;align-items:center;text-align:left;border:0;border-radius:26px;padding:18px;color:#fff;background:linear-gradient(130deg,var(--c1),var(--c2));box-shadow:var(--shadow);transition:transform .15s;cursor:pointer;width:100%}
+.subj:hover{transform:translateY(-4px) rotate(-.4deg)}.subj .mas{font-size:50px;background:rgba(255,255,255,.25);border-radius:22px;width:84px;height:84px;display:grid;place-items:center;flex:none}
+.subj .sbody{display:flex;flex-direction:column;gap:6px;flex:1;min-width:0}.subj b{font-size:21px}.subj small{opacity:.97}.subj .cchip{background:rgba(255,255,255,.25);color:#fff}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.tile{display:flex;flex-direction:column;gap:2px;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:22px;padding:16px;cursor:pointer;box-shadow:var(--shadow);transition:transform .15s}
+.tile:hover:not(:disabled){transform:translateY(-3px);border-color:var(--brand)}.tile:disabled{opacity:.55;cursor:not-allowed}.tile .tic{font-size:38px;line-height:1.1}.tile b{font-size:18px}.tile small{color:var(--muted)}
+.lessons{display:grid;gap:12px;margin:16px 0 30px}
+.lesson{display:flex;gap:14px;align-items:center;text-align:left;width:100%;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:14px 16px;cursor:pointer;box-shadow:var(--shadow)}
+.lesson:hover{border-color:var(--brand)}.lno{width:48px;height:48px;border-radius:50%;background:var(--brand);color:var(--on);display:grid;place-items:center;font-weight:700;flex:none;font-size:22px}
+.lesson.read .lno{background:var(--ok)}.lesson b{display:block}.lesson small{color:var(--muted);display:block}
+.panel.soon{text-align:center;padding:34px 18px}
+/* reader */
+.reader{background:var(--card);border:2px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:22px;margin-top:16px;min-height:300px;touch-action:pan-y}
+.reader h2{color:var(--brand);margin-bottom:8px}.dots{display:flex;gap:8px;justify-content:center;margin:14px 0}.dots i{width:12px;height:12px;border-radius:50%;background:var(--line)}.dots i.on{background:var(--brand2);transform:scale(1.25)}
+.rich{font-size:19px;line-height:1.7}.rich p{margin:.6em 0}.rich ul,.rich ol{padding-left:1.4em;margin:.5em 0}.rich li{margin:.3em 0}.rh{margin:1em 0 .3em;color:var(--brand)}
+.callout{background:var(--sel);border-left:6px solid var(--brand2);border-radius:12px;padding:10px 14px;margin:12px 0}
+.hl{background:color-mix(in srgb,#fde047 60%,transparent);color:inherit;border-radius:4px;padding:0 3px}
+.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;font-size:.9em;line-height:1.15;margin:0 3px}.frac>span:first-child{border-bottom:1.5px solid currentColor;padding:0 4px}.frac>span:last-child{padding:0 4px}.rad{border-top:1.5px solid currentColor;padding:0 2px;margin-left:1px}
+/* questions */
+.qbar{position:sticky;top:0;z-index:30;background:var(--card);border-bottom:2px solid var(--line);padding:10px 0}.qbar .wrap{display:flex;gap:12px;align-items:center}
+.pb{height:10px;background:var(--card2);border-radius:6px;flex:1;overflow:hidden}.pb i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2));border-radius:6px;transition:width .3s}
+.qcard{background:var(--card);border:2px solid var(--line);border-radius:24px;padding:20px;margin:16px 0;box-shadow:var(--shadow)}
+.qn{font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--brand2)}.qtext{font-weight:600;font-size:clamp(20px,4.2vw,27px);margin:6px 0 14px}
+.opt{display:flex;gap:12px;align-items:center;width:100%;text-align:left;margin:10px 0;padding:14px 16px;border:2px solid var(--line);border-radius:16px;background:var(--card);font-size:18px;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--brand)}.opt .l{width:34px;height:34px;border-radius:50%;background:var(--card2);display:grid;place-items:center;font-weight:700;flex:none}
+.opt.sel{background:var(--sel);border-color:var(--brand)}.opt.right{background:var(--okbg);border-color:var(--ok)}.opt.wrong{background:var(--badbg);border-color:var(--bad)}
+.fib input{font-size:20px;text-align:center}.fbk{margin-top:12px;padding:12px 14px;border-radius:14px;font-weight:600}.fbk.ok{background:var(--okbg);color:var(--ok)}.fbk.no{background:var(--badbg);color:var(--bad)}.fbk .rich{font-weight:400;font-size:16px}
+.model{background:var(--card2);border-radius:14px;padding:10px 14px;margin-top:10px}.mark{margin-top:12px;padding:12px 14px;background:var(--card2);border:1px solid var(--line);border-radius:16px}
+.pt{display:flex;gap:10px;align-items:flex-start;padding:6px 0}.pt input{width:auto;margin-top:6px}.cchip.pick{cursor:pointer;border:0;font-weight:700;font-size:16px;padding:6px 14px}
+.res{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:26px;text-align:center;box-shadow:var(--shadow);margin:18px 0}.res .big{font-size:64px;font-weight:700;color:var(--brand);line-height:1.1}
+.stars{font-size:38px;letter-spacing:4px}
+.markbox{display:flex;gap:18px;align-items:center;flex-wrap:wrap}.markbox .big{font:700 64px/1 'Fredoka',sans-serif;color:var(--brand)}.markbox .big small{font-size:24px;color:var(--muted)}
+.thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin:12px 0}.thumbs figure{margin:0}.thumbs img{width:100%;border-radius:12px;border:1px solid var(--line);background:#fff}.thumbs figcaption{font-size:13px;color:var(--muted);text-align:center}
+.pgs{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}.pg{width:100%;border:1px solid var(--line);border-radius:10px;cursor:zoom-in;background:#fff}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:90;display:grid;place-items:center}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:70;overflow:hidden}.confetti span{position:absolute;top:-30px;animation:fall 2.6s ease-in forwards}@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9}}
+/* auth */
+.auth{min-height:100vh;display:grid;place-items:center;padding:24px 16px;background:radial-gradient(900px 480px at 15% -10%,var(--bg2),transparent 60%),radial-gradient(800px 420px at 100% 110%,var(--bg2),transparent 60%),var(--bg)}
+.authbox{width:min(460px,100%)}.authhead{text-align:center;margin-bottom:16px}.authhead h1{font-size:clamp(30px,8vw,44px);color:var(--brand)}.authhead .mascot{font-size:84px}
+.tabs{display:flex;gap:8px;margin-bottom:6px}.tabs button{flex:1;padding:10px;border:2px solid var(--line);background:var(--card);border-radius:14px;font-weight:700;cursor:pointer}.tabs button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.themes{display:flex;gap:10px;flex-wrap:wrap}.th{width:64px;height:64px;border-radius:18px;border:4px solid transparent;cursor:pointer;font-size:26px}.th.on{border-color:var(--ink)}
+.admtabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.admtabs button{padding:8px 16px;border:2px solid var(--line);background:var(--card);border-radius:999px;font-weight:700;cursor:pointer}.admtabs button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.qed{border:2px solid var(--line);border-radius:16px;padding:12px;margin:10px 0;background:var(--card2)}.qed textarea{min-height:60px}.qed .row{display:flex;gap:8px;align-items:center;margin-top:6px}.qed .row input[type=radio]{width:auto}
+.prev{background:var(--bg);border:2px dashed var(--line);border-radius:16px;padding:12px;margin-top:8px}
+@media(max-width:700px){.herorow{flex-direction:column;align-items:flex-start;gap:6px}.mascot{font-size:56px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body><div id="app"><p style="padding:24px">Loading…</p></div><script>
+const APP_VERSION='v1.0',APP_NAME='BECE Prep Zone';
+const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
+const SUBJ=[{id:'sci',title:'Integrated Science',mas:'🔬',c1:'#0f9d58',c2:'#34d3a0',desc:'Explore how the world works!'},{id:'math',title:'Mathematics',mas:'🧮',c1:'#e8477a',c2:'#ff9a5a',desc:'Numbers, shapes and puzzles!'},{id:'ga',title:'Ghanaian Language (Ga)',mas:'🥁',c1:'#6d3fe0',c2:'#b07cff',desc:'Speak, read and write Ga!'}];
+const subj=id=>SUBJ.find(s=>s.id===id)||SUBJ[0];
+const $=s=>document.querySelector(s),app=document.getElementById('app');
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+const S={token:lsGet('bpz_t')||'',role:'',username:'',fullName:'',theme:lsGet('bpz_th')||'sunny',progress:{},pe:0,settings:{mockq:30,mockt:45},asgUnseen:0,pending:0,lessons:[],sound:lsGet('bpz_snd')!=='0',listen:true};
+function setTheme(t){S.theme=t;document.documentElement.dataset.theme=t;lsSet('bpz_th',t)}setTheme(S.theme);
+async function api(action,body={}){
+  try{const r=await fetch('/api',{method:'POST',headers:{'content-type':'application/json',...(S.token?{authorization:'Bearer '+S.token}:{})},body:JSON.stringify({action,...body})});
+    const j=await r.json().catch(()=>({ok:false,error:'The server sent something unexpected. Please try again.'}));
+    if(r.status===401&&S.token&&action!=='login'){signOutLocal();showAuth('Please sign in again.')}return j}
+  catch(e){return{ok:false,error:'No internet connection. Please check and try again.'}}}
+let tt;function toast(m,ms=2600){let t=$('.toast');if(t)t.remove();t=document.createElement('div');t.className='toast';t.textContent=m;t.setAttribute('role','status');document.body.appendChild(t);clearTimeout(tt);tt=setTimeout(()=>t.remove(),ms)}
+function loadScript(list,test){return new Promise((res,rej)=>{if(test&&test())return res();let i=0;const go=()=>{if(i>=list.length)return rej(new Error('Could not load a helper file.'));const s=document.createElement('script');s.src=list[i++];s.onload=()=>res();s.onerror=go;document.head.appendChild(s)};go()})}
+/* ---- rich text: **bold**, ==highlight==, ^{sup}, _{sub}, [[a/b]], sqrt{x}, "## heading", "- bullet", "1. step", "> tip" ---- */
+function rtInline(s){let t=esc(s);
+  t=t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/==(.+?)==/g,'<mark class="hl">$1</mark>');
+  t=t.replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/_\{([^{}]*)\}/g,'<sub>$1</sub>');
+  t=t.replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,'<span class="frac"><span>$1</span><span>$2</span></span>');
+  return t.replace(/sqrt\{([^{}]*)\}/g,'√<span class="rad">$1</span>')}
+function rich(s){const out=[];let list=null;const close=()=>{if(list){out.push('</'+list+'>');list=null}};
+  String(s||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trimEnd();let m;
+    if(!l.trim()){close();return}
+    if((m=l.match(/^(#{1,3})\s+(.*)$/))){close();const n=m[1].length+1;out.push(`<h${n} class="rh">${rtInline(m[2])}</h${n}>`);return}
+    if((m=l.match(/^[-•*]\s+(.*)$/))){if(list!=='ul'){close();out.push('<ul>');list='ul'}out.push(`<li>${rtInline(m[1])}</li>`);return}
+    if((m=l.match(/^(\d{1,2})[.)]\s+(.*)$/))){if(list!=='ol'){close();out.push(`<ol start="${m[1]}">`);list='ol'}out.push(`<li>${rtInline(m[2])}</li>`);return}
+    if((m=l.match(/^>\s*(.*)$/))){close();out.push(`<div class="callout">💡 ${rtInline(m[1])}</div>`);return}
+    close();out.push(`<p>${rtInline(l)}</p>`)});
+  close();return out.join('')}
+const plain=s=>String(s||'').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
+/* ---- progress, stars, streak, levels ---- */
+const pad2=n=>String(n).padStart(2,'0'),dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())};
+const yKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d)};
+const P=()=>S.progress;
+const rec=id=>{const l=(P().lessons=P().lessons||{});return l[id]=l[id]||{}};
+function touchStreak(){const s=P().streak=P().streak||{d:'',n:0},t=dayKey();if(s.d===t)return;s.n=s.d===yKey()?(s.n||0)+1:1;s.d=t}
+const streakNow=()=>{const s=P().streak||{};return s.n&&(s.d===dayKey()||s.d===yKey())?s.n:0};
+function starsTotal(){let n=0;for(const r of Object.values(P().lessons||{}))n+=(r.read?2:0)+((r.b&&r.b.mcq)||0)+((r.b&&r.b.fib)||0)+((r.b&&r.b.st)||0);for(const m of Object.values(P().mock||{}))n+=Math.floor((m.best||0)/2);return n}
+const LEVELS=[[0,'Explorer','🌱'],[40,'Learner','📘'],[120,'Scholar','🎓'],[300,'Champion','🏆'],[600,'Super Star','🌟']];
+function levelOf(n){let i=0;LEVELS.forEach((L,k)=>{if(n>=L[0])i=k});const L=LEVELS[i],nx=LEVELS[i+1]||null;return{L,nx,pct:nx?Math.round(100*(n-L[0])/(nx[0]-L[0])):100}}
+let saveT=null;function queueSave(){if(S.role!=='user')return;P().stars=starsTotal();clearTimeout(saveT);saveT=setTimeout(saveNow,1200)}
+async function saveNow(){if(S.role!=='user'||!S.token)return;clearTimeout(saveT);const r=await api('saveState',{progress:P(),theme:S.theme,pe:S.pe});if(r&&r.stale){S.progress={};S.pe=r.pe||0;toast('Your teacher reset your progress. Fresh start!')}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow()});
+function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const box=document.createElement('div');box.className='confetti';box.setAttribute('aria-hidden','true');const E=['🎉','⭐','✨','🌟','🎊','🏅'];
+  for(let i=0;i<26;i++){const s=document.createElement('span');s.textContent=E[i%E.length];s.style.left=(Math.random()*100)+'vw';s.style.animationDelay=(Math.random()*.8)+'s';s.style.fontSize=(18+Math.random()*18)+'px';box.appendChild(s)}
+  document.body.appendChild(box);setTimeout(()=>box.remove(),3600)}
+let AC=null;function beep(kind){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const seq=kind==='ok'?[[660,0],[880,.12]]:kind==='win'?[[523,0],[659,.12],[784,.24],[1046,.36]]:[[220,0]];seq.forEach(([f,t])=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='triangle';g.gain.setValueAtTime(.12,AC.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t+.25);o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.26)})}catch(e){}}
+/* ---- listen (text to speech) ---- */
+const canSpeak=()=>'speechSynthesis' in window;
+function speak(text){if(!canSpeak())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(plain(text));u.rate=.92;speechSynthesis.speak(u)}
+const stopSpeak=()=>{if(canSpeak())speechSynthesis.cancel()};
+const dueTxt=d=>{try{return new Date(d+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'})}catch(e){return d}};
+const fmtD=t=>{try{return new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch(e){return''}};
+/* ---- auth ---- */
+function signOutLocal(){stopSpeak();S.token='';S.role='';S.progress={};lsSet('bpz_t',null)}
+function showAuth(note){
+  S.token='';document.body.style.paddingBottom='0';let tab='in',need=false;
+  const paint=(msg,cls)=>{
+    app.innerHTML=`<div class="auth"><div class="authbox"><div class="authhead"><div class="mascot" aria-hidden="true">🦉</div><h1>${APP_NAME}</h1><p class="hint">Learn, play and get ready for BECE!</p></div>
+    <div class="panel"><div class="tabs" role="tablist"><button class="${tab==='in'?'on':''}" data-t="in">Sign in</button><button class="${tab==='up'?'on':''}" data-t="up">New learner</button></div>
+    ${note?`<div class="msg err">${esc(note)}</div>`:''}
+    ${tab==='in'?`<form id="f"><label class="f">Username<input id="u" autocomplete="username" autocapitalize="none" required></label><label class="f">Password<input id="p" type="password" autocomplete="current-password" required></label>${need?'<label class="f">6-digit code (administrator)<input id="c" inputmode="numeric" autocomplete="one-time-code"></label>':''}<div class="actions"><button class="btn primary big" style="width:100%">Let's go! 🚀</button></div><p class="hint" style="text-align:center"><button type="button" class="link" id="fg">Forgot my password</button></p></form>`
+    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
+    <div id="m">${msg?`<div class="msg ${cls}">${esc(msg)}</div>`:''}</div></div><p class="hint" style="text-align:center">${APP_NAME} ${APP_VERSION}</p></div></div>`;
+    app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;note='';need=false;paint()});
+    const fg=$('#fg');if(fg)fg.onclick=async()=>{const u=$('#u').value.trim();if(!u)return paint('Type your username first, then press this again.','err');await api('requestReset',{username:u});paint('Your teacher has been told. They will give you a new password.','okm')};
+    $('#f').onsubmit=async e=>{e.preventDefault();const b=e.target.querySelector('button.primary');b.disabled=true;
+      if(tab==='in'){const r=await api('login',{username:$('#u').value,password:$('#p').value,code:need?$('#c').value:''});
+        if(r.needCode){need=true;return paint(r.error,'err')}
+        if(!r.ok){b.disabled=false;return paint(r.error,'err')}
+        S.token=r.token;lsSet('bpz_t',r.token);return boot()}
+      const r=await api('register',{fullName:$('#n').value,username:$('#u').value,phone:$('#ph').value,password:$('#p').value});
+      if(!r.ok){b.disabled=false;return paint(r.error,'err')}
+      tab='in';paint('Done! Your teacher will approve your account soon. Then you can sign in.','okm')}};
+  paint()}
+async function boot(){
+  if(!S.token)return showAuth();
+  const r=await api('me');if(!r.ok){if(!S.token)return;return showAuth(r.error)}
+  Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
+  if(r.role==='user')setTheme(r.theme||'sunny');else setTheme('sunny');
+  if(S.role==='admin')return adminHome();
+  touchStreak();queueSave();home()}
+async function signOut(){await saveNow();await api('logout');signOutLocal();showAuth()}
+/* ---- shell ---- */
+function nav(active){const n=S.asgUnseen||0;return `<nav class="bnav" aria-label="Main"><button data-go="home" class="${active==='home'?'on':''}"><span class="em">🏠</span>Home</button><button data-go="asg" class="${active==='asg'?'on':''}"><span class="em">📬</span>Homework${n?`<span class="dot">${n}</span>`:''}</button><button data-go="me" class="${active==='me'?'on':''}"><span class="em">⚙️</span>Me</button></nav>`}
+function wireNav(){app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{stopSpeak();const g=b.dataset.go;g==='home'?home():g==='asg'?assignments():me()})}
+function firstName(){return (S.fullName||S.username).split(/\s+/)[0]}
+async function loadLessons(){const r=await api('lessonList');S.lessons=r.ok?r.lessons:[];return r.ok}
+/* ---- home ---- */
+async function home(){
+  window.scrollTo(0,0);stopSpeak();document.body.style.paddingBottom='70px';
+  const [,mr]=await Promise.all([loadLessons(),api('me')]);if(mr&&mr.ok)S.asgUnseen=mr.asgUnseen||0;
+  const n=starsTotal(),lv=levelOf(n),sk=streakNow(),mis=(P().mistakes||[]).length;
+  app.innerHTML=`<header class="hero"><div class="wrap"><div class="herorow"><div class="mascot" aria-hidden="true">🦉</div><div style="flex:1"><h1>Hi ${esc(firstName())}! 👋</h1><p class="lede">${sk>1?`${sk} days in a row! Keep your streak going.`:'Pick a subject and start your adventure.'}</p></div></div>
+  <div class="stats"><div class="stat"><b>⭐ ${n}</b><small>stars</small></div><div class="stat"><b>🔥 ${sk}</b><small>day streak</small></div><div class="stat lvl"><b>${lv.L[2]} ${lv.L[1]}</b><small>${lv.nx?`${lv.nx[0]-n} stars to ${lv.nx[1]}`:'Top level!'}</small><span class="sprog"><i style="width:${lv.pct}%"></i></span></div></div></div></header>
+  <main class="wrap"><div class="subjgrid">${SUBJ.map(s=>{const ls=S.lessons.filter(l=>l.subject===s.id),done=ls.filter(l=>(P().lessons||{})[l.id]&&P().lessons[l.id].read).length;return `<button class="subj" data-s="${s.id}" style="--c1:${s.c1};--c2:${s.c2}"><span class="mas" aria-hidden="true">${s.mas}</span><span class="sbody"><b>${s.title}</b><small>${s.desc}</small><span class="chips"><span class="cchip">${ls.length?`${done}/${ls.length} lessons`:'Coming soon'}</span></span></span><span aria-hidden="true" style="font-size:24px">▶</span></button>`}).join('')}</div>
+  <div class="tiles"><button class="tile" id="tm"><span class="tic">🛠️</span><b>Fix my mistakes</b><small>${mis?mis+' to practise':'Nothing to fix. Great!'}</small></button><button class="tile" data-go="asg"><span class="tic">📬</span><b>Homework</b><small>${S.asgUnseen?S.asgUnseen+' new mark'+(S.asgUnseen>1?'s':''):'Hand in your work'}</small></button></div></main>${nav('home')}`;
+  wireNav();app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>subject(b.dataset.s));$('#tm').onclick=()=>mis?retryMistakes():toast('No mistakes to fix yet. 🎉')}
+async function subject(id){
+  window.scrollTo(0,0);stopSpeak();const s=subj(id);await loadLessons();
+  const ls=S.lessons.filter(l=>l.subject===id);
+  app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${ls.length?`${ls.length} lesson${ls.length>1?'s':''} to explore`:s.desc}</p></div></div></div></header>
+  <main class="wrap">${ls.length?`<div class="lessons">${ls.map((l,i)=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{};const st=(r.read?2:0)+(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="lesson ${r.read?'read':''}" data-l="${l.id}"><span class="lno">${r.read?'✓':esc(l.emoji||i+1)}</span><span><b>${esc(l.title)}</b><small>${l.np} page${l.np>1?'s':''} · ${l.nq} question${l.nq===1?'':'s'}${st?` · ⭐ ${st}`:''}</small></span></button>`}).join('')}</div>
+  <div class="tiles" style="margin-bottom:30px"><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`
+  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} ready. Come back soon.</p></div>`}</main>${nav('home')}`;
+  wireNav();$('#bk').onclick=home;app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id)}
+/* ---- lesson reader ---- */
+async function openLesson(id,pg){
+  const r=await api('lessonGet',{id});if(!r.ok){toast(r.error);return}
+  const L=r.lesson,s=subj(L.subject);let i=pg||0;const pages=L.pages;window.scrollTo(0,0);
+  const paint=()=>{const p=pages[i],last=i===pages.length-1;
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← ${esc(s.title)}</button>${canSpeak()?'<button class="btn sm" id="ls">🔊 Listen</button>':''}</div><h1>${esc(L.emoji)} ${esc(L.title)}</h1><p class="lede">Page ${i+1} of ${pages.length}</p></div></header>
+    <main class="wrap"><article class="reader" id="rd" aria-live="polite">${p.title?`<h2>${esc(p.title)}</h2>`:''}<div class="rich">${rich(p.body)}</div></article><div class="dots" aria-hidden="true">${pages.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
+    <div class="actions" style="justify-content:space-between"><button class="btn" id="pv" ${i?'':'disabled'}>◀ Back</button>${last?'<button class="btn primary big" id="go">I am ready for the test! 🚀</button>':'<button class="btn primary" id="nx">Next ▶</button>'}</div></main>`;
+    $('#bk').onclick=()=>{stopSpeak();subject(L.subject)};const ls=$('#ls');if(ls)ls.onclick=()=>speak((p.title?p.title+'. ':'')+p.body);
+    $('#pv').onclick=()=>{stopSpeak();i--;paint();window.scrollTo(0,0)};const nx=$('#nx');if(nx)nx.onclick=()=>{stopSpeak();i++;paint();window.scrollTo(0,0)};
+    if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('ok');confetti();toast('⭐⭐ +2 stars for reading!')}$('#go').onclick=()=>{stopSpeak();lessonTest(L)}}
+    let x0=null;const rd=$('#rd');rd.ontouchstart=e=>{x0=e.touches[0].clientX};rd.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<70)return;if(dx<0&&i<pages.length-1){stopSpeak();i++;paint()}else if(dx>0&&i>0){stopSpeak();i--;paint()}}};
+  paint()}
+
+/* ---- answers ---- */
+const normA=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/ɛ/g,'e').replace(/ɔ/g,'o').replace(/ŋ/g,'n').replace(/[^a-z0-9. \/-]+/g,' ').replace(/\s+/g,' ').trim().replace(/\.$/,'');
+const fibOk=(q,v)=>{const n=normA(v);if(!n)return false;return String(q.a).split('|').some(a=>{const m=normA(a);return m&&(m===n||m.replace(/ /g,'')===n.replace(/ /g,''))})};
+const fibShow=q=>String(q.a).split('|')[0].trim();
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const fmtT=s=>Math.floor(s/60)+':'+pad2(s%60);
+const stP=x=>x.parts||[];const stTot=x=>stP(x).reduce((a,p)=>a+p.m,0);
+/* ---- the question runner: one question per screen ---- */
+function runQuiz(o){
+  const items=o.items;let idx=0,left=o.timer||0,tid=null;const res=[];
+  const done=()=>{clearInterval(tid);o.onDone(res)};
+  const bar=()=>`<div class="qbar"><div class="wrap"><button class="btn sm" id="ex" aria-label="Leave">✕</button><div class="pb"><i style="width:${Math.round(100*idx/items.length)}%"></i></div><b>${idx+1}/${items.length}</b>${o.timer?`<span class="cchip" id="tm">⏱ ${fmtT(left)}</span>`:''}</div></div>`;
+  const wireExit=()=>{$('#ex').onclick=()=>{if(confirm('Leave this? Your answers so far will not be saved.')){clearInterval(tid);o.onExit()}}};
+  if(o.timer)tid=setInterval(()=>{left--;const t=$('#tm');if(t)t.textContent='⏱ '+fmtT(Math.max(0,left));if(left<=0){toast('Time is up!');done()}},1000);
+  const next=r=>{res.push(r);idx++;idx>=items.length?done():show()};
+  function show(){
+    window.scrollTo(0,0);const it=items[idx],q=it.q,lastQ=idx===items.length-1,nxl=lastQ?'See my results ▶':'Next ▶';
+    if(it.k==='mcq'){
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">QUESTION ${idx+1}</span><div class="qtext">${rtInline(q.q)}</div><div id="ops">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'ABCDE'[k]}</span><span>${rtInline(t)}</span></button>`).join('')}</div><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="nx" disabled>${nxl}</button></div></section></main>`;wireExit();
+      let pick=-1,locked=false;const ops=[...app.querySelectorAll('.opt')];
+      ops.forEach(b=>b.onclick=()=>{if(locked)return;pick=+b.dataset.k;
+        if(o.instant){locked=true;const ok=pick===q.c;ops.forEach((z,k)=>{z.disabled=true;if(k===q.c)z.classList.add('right');else if(k===pick)z.classList.add('wrong')});
+          $('#fb').innerHTML=`<div class="fbk ${ok?'ok':'no'}">${ok?'🎉 Correct! Well done!':'Not quite. The answer is '+'ABCDE'[q.c]+'.'}${q.e?`<div class="rich">${rich(q.e)}</div>`:''}</div>`;beep(ok?'ok':'no');if(ok)touchStreak();$('#nx').disabled=false;$('#nx').onclick=()=>next({it,ok});$('#nx').focus()}
+        else{ops.forEach(z=>z.classList.toggle('sel',z===b));$('#nx').disabled=false;$('#nx').onclick=()=>next({it,ok:pick===q.c,pick})}})}
+    else if(it.k==='fib'){
+      const parts=q.q.split('___');
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard fib"><span class="qn">FILL IN THE BLANK ${idx+1}</span><div class="qtext">${rtInline(parts[0])}<b style="color:var(--brand2)">_____</b>${rtInline(parts.slice(1).join('___'))}</div><label class="hide" for="a">Your answer</label><input id="a" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Type your answer"><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="ck">${o.instant?'Check ✓':nxl}</button><button class="btn primary hide" id="nx">${nxl}</button></div></section></main>`;wireExit();
+      const a=$('#a');a.focus();let checked=false;
+      const go=()=>{if(!o.instant)return next({it,ok:fibOk(q,a.value),ans:a.value});
+        if(checked)return;if(!a.value.trim()){toast('Type your answer first.');return}checked=true;const ok=fibOk(q,a.value);a.disabled=true;
+        $('#fb').innerHTML=`<div class="fbk ${ok?'ok':'no'}">${ok?'🎉 Correct! Well done!':'Not quite. The answer is <b>'+esc(fibShow(q))+'</b>.'}${q.e?`<div class="rich">${rich(q.e)}</div>`:''}</div>`;beep(ok?'ok':'no');if(ok)touchStreak();
+        $('#ck').classList.add('hide');const nx=$('#nx');nx.classList.remove('hide');nx.onclick=()=>next({it,ok});nx.focus()};
+      $('#ck').onclick=go;a.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();checked&&$('#nx')?$('#nx').click():go()}}}
+    else{ /* structured, self-marked */
+      const P_=stP(q),tot=stTot(q),sc=P_.map(()=>0),shown=P_.map(()=>false);
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${rtInline(q.q)}</div></section>
+      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${rtInline(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="Write your answer here, or on paper, then show the model answer."></textarea><div class="actions"><button class="btn primary" data-show="${k}">Show the model answer</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
+      <div class="actions"><button class="btn primary big" id="fin">${nxl}</button></div></main>`;wireExit();
+      app.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=+b.dataset.show,p=P_[k],card=b.closest('.qcard'),ta=card.querySelector('textarea'),slot=card.querySelector('.slot');
+        if(!ta.value.trim()&&!confirm('You have not written anything yet. Show the answer anyway?'))return;shown[k]=true;ta.disabled=true;b.classList.add('hide');
+        const ans=p.a?`<div class="rich">${rich(p.a)}</div>`:'';
+        if(p.pts&&p.pts.length){slot.innerHTML=`<div class="model"><b>Model answer</b>${ans}</div><div class="mark"><b>Tick every point you wrote:</b>${p.pts.map(t=>`<label class="pt"><input type="checkbox" data-pt="${k}"> <span>${rtInline(t)}</span></label>`).join('')}<div class="meta">Each point is 1 mark. Be honest!</div></div>`;
+          slot.querySelectorAll('[data-pt]').forEach(c=>c.onchange=()=>{sc[k]=Math.min(p.m,slot.querySelectorAll('[data-pt]:checked').length)})}
+        else{slot.innerHTML=`<div class="model"><b>Model answer</b>${ans}</div><div class="mark"><b>How many marks did you earn? (out of ${p.m})</b><div class="chips" role="radiogroup">${Array.from({length:p.m+1},(_,v)=>`<button class="cchip pick" role="radio" aria-checked="false" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+          slot.querySelectorAll('[data-v]').forEach(c=>c.onclick=()=>{sc[k]=+c.dataset.v;slot.querySelectorAll('[data-v]').forEach(z=>{z.classList.toggle('ok',z===c);z.setAttribute('aria-checked',z===c)})})}});
+      $('#fin').onclick=()=>{if(!shown.every(Boolean)){toast('Show the model answer for every part first.');return}next({it,s:sc.reduce((a,b)=>a+b,0),t:tot})}}
+  }
+  show()}
+/* ---- mistakes notebook ---- */
+const mkId=(lid,q)=>lid+'|'+normA(q.q).slice(0,120);
+function addMistakes(list){const m=P().mistakes=P().mistakes||[];for(const r of list){if(r.it.k==='st'||r.ok)continue;const q=r.it.q,id=mkId(r.it.lid||'x',q);if(!m.some(x=>x.id===id))m.push({id,k:r.it.k,q})}while(m.length>100)m.shift()}
+function clearMistakes(list){const m=P().mistakes=P().mistakes||[];for(const r of list){if(r.ok){const id=mkId(r.it.lid||'x',r.it.q),i=m.findIndex(x=>x.id===id);if(i>=0)m.splice(i,1)}}}
+const starRow=pct=>pct>=80?'⭐⭐⭐':pct>=50?'⭐⭐☆':pct>=20?'⭐☆☆':'☆☆☆';
+/* ---- lesson test: multiple choice, then fill-in, then structured ---- */
+function lessonTest(L){
+  const order={mcq:0,fib:1,st:2},items=L.questions.map(q=>({k:q.t,q,lid:L.id})).sort((a,b)=>order[a.k]-order[b.k]);
+  if(!items.length){toast('This lesson has no questions yet.');return subject(L.subject)}
+  const before=starsTotal();
+  runQuiz({items,instant:true,onExit:()=>openLesson(L.id,L.pages.length-1),onDone:res=>{
+    const cnt=k=>({c:res.filter(r=>r.it.k===k&&r.ok).length,t:res.filter(r=>r.it.k===k).length}),m=cnt('mcq'),f=cnt('fib'),st=res.filter(r=>r.it.k==='st'),ss=st.reduce((a,r)=>a+r.s,0),stt=st.reduce((a,r)=>a+r.t,0);
+    const rc=rec(L.id),b=rc.b=rc.b||{};b.mcq=Math.max(b.mcq||0,m.c);b.fib=Math.max(b.fib||0,f.c);b.st=Math.max(b.st||0,ss);rc.read=true;rc.last=Date.now();
+    addMistakes(res);clearMistakes(res);touchStreak();queueSave();
+    const got=m.c+f.c+ss,all=m.t+f.t+stt,pct=all?Math.round(100*got/all):0,gain=starsTotal()-before,idx=S.lessons.filter(l=>l.subject===L.subject),at=idx.findIndex(l=>l.id===L.id),nx=idx[at+1];
+    window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
+    app.innerHTML=`<header class="hero"><div class="wrap"><h1>${esc(L.emoji)} ${esc(L.title)}</h1><p class="lede">Test finished</p></div></header><main class="wrap"><div class="res"><div class="stars" aria-hidden="true">${starRow(pct)}</div><div class="big">${pct}%</div><p><b>${pct>=80?'Brilliant work!':pct>=50?'Good effort!':'Keep going, you can do it!'}</b>${gain>0?` You earned <b>${gain} new star${gain>1?'s':''}</b> ⭐`:''}</p>
+    <div class="chips" style="justify-content:center">${m.t?`<span class="cchip">Multiple choice ${m.c}/${m.t}</span>`:''}${f.t?`<span class="cchip">Fill-in ${f.c}/${f.t}</span>`:''}${stt?`<span class="cchip">Structured ${ss}/${stt}</span>`:''}</div>
+    <div class="actions" style="justify-content:center"><button class="btn primary" id="again">Try again 🔁</button><button class="btn" id="rd">Read again 📖</button>${nx?'<button class="btn good" id="nxl">Next lesson ▶</button>':''}<button class="btn" id="bk">All lessons</button></div></div></main>${nav('home')}`;wireNav();
+    $('#again').onclick=()=>lessonTest(L);$('#rd').onclick=()=>openLesson(L.id);$('#bk').onclick=()=>subject(L.subject);const n=$('#nxl');if(n)n.onclick=()=>openLesson(nx.id)}})}
+/* ---- timed subject challenge ---- */
+async function mock(sid){
+  const r=await api('subjectQs',{subject:sid});if(!r.ok)return toast(r.error);
+  if(r.questions.length<5)return toast('Not enough questions yet. Finish a few lessons first!');
+  const items=shuffle(r.questions).slice(0,S.settings.mockq).map(q=>({k:q.t,q,lid:q.lid})),s=subj(sid);
+  if(!confirm(`Subject challenge: ${items.length} questions in ${S.settings.mockt} minutes. Ready?`))return;
+  runQuiz({items,instant:false,timer:S.settings.mockt*60,onExit:()=>subject(sid),onDone:res=>{
+    const c=res.filter(x=>x.ok).length,n=items.length,pct=Math.round(100*c/n),m=(P().mock=P().mock||{}),old=m[sid]||{},before=starsTotal();
+    m[sid]={best:Math.max(old.best||0,c),n,at:Date.now()};addMistakes(res);touchStreak();queueSave();const gain=starsTotal()-before;
+    window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
+    const wrong=res.filter(x=>!x.ok);
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Challenge done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">${res.length<n?`You answered ${res.length} of ${n}. `:''}Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
+    ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>mock(sid);$('#b').onclick=()=>subject(sid)}})}
+function retryMistakes(){
+  const m=(P().mistakes||[]).slice(0,15);if(!m.length)return toast('No mistakes to fix. 🎉');
+  const items=m.map(x=>({k:x.k,q:x.q,lid:x.id.split('|')[0]}));
+  runQuiz({items,instant:true,onExit:home,onDone:res=>{clearMistakes(res);queueSave();const c=res.filter(x=>x.ok).length;window.scrollTo(0,0);if(c)confetti();
+    app.innerHTML=`<header class="hero"><div class="wrap"><h1>🛠️ Mistakes practice</h1></div></header><main class="wrap"><div class="res"><div class="big">${c}/${res.length}</div><p><b>${c===res.length?'All fixed! Amazing!':'Fixed '+c+'. Keep practising the rest.'}</b></p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">${(P().mistakes||[]).length?'Practise more':'Done'}</button></div></div></main>${nav('home')}`;wireNav();$('#a').onclick=()=>(P().mistakes||[]).length?retryMistakes():home()}})}
+/* ---- homework (learner) ---- */
+const asgChip=s=>!s?'<span class="tag">Not handed in</span>':s.status==='marked'?`<span class="badge">Marked ${s.score}</span>`:s.status==='returned'?'<span class="badge d">Try again</span>':'<span class="badge a">Handed in</span>';
+async function assignments(){
+  window.scrollTo(0,0);stopSpeak();
+  app.innerHTML=`<header class="hero"><div class="wrap"><h1>📬 My homework</h1><p class="lede">Do the work on paper, take clear photos, upload them, and your teacher will mark it and send feedback.</p></div></header><main class="wrap" id="al"><p>Loading…</p></main>${nav('asg')}`;wireNav();
+  const r=await api('asgList'),al=$('#al');if(!al)return;if(!r.ok){al.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  S.asgUnseen=r.assignments.filter(a=>a.sub&&a.sub.status==='marked'&&!a.sub.seen).length;
+  al.innerHTML=r.assignments.length?`<div class="lessons">${r.assignments.map(a=>`<button class="lesson ${a.sub&&a.sub.status==='marked'?'read':''}" data-a="${a.id}"><span class="lno">${subj(a.subject).mas}</span><span><b>${esc(a.title)}</b><small>${esc(subj(a.subject).title)} · out of ${a.max}${a.due?' · due '+dueTxt(a.due):''}</small>${asgChip(a.sub)}${a.sub&&a.sub.status==='marked'&&!a.sub.seen?' <span class="tag new">New</span>':''}</span></button>`).join('')}</div>`:`<div class="panel soon"><div style="font-size:42px">🌤️</div><h3>No homework yet</h3><p class="hint">When your teacher sets some, it will show up here.</p></div>`;
+  al.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>asgOpen(r.assignments.find(a=>a.id===b.dataset.a)))}
+async function drawableOf(file){try{return await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){}
+  const url=await new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.onerror=()=>rej(new Error('read'));fr.readAsDataURL(file)});
+  return await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('That picture could not be opened. Take the photo with your camera, or use a JPG or PNG picture.'));i.src=url})}
+function encodeJpeg(src){const w0=src.width||src.naturalWidth,h0=src.height||src.naturalHeight;
+  for(const [max,q] of [[1600,.72],[1400,.62],[1200,.55],[1000,.5],[800,.45]]){const sc=Math.min(1,max/Math.max(w0,h0)),c=document.createElement('canvas');c.width=Math.max(1,Math.round(w0*sc));c.height=Math.max(1,Math.round(h0*sc));const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(src,0,0,c.width,c.height);const d=c.toDataURL('image/jpeg',q);if(d.length<=900000)return d}
+  throw new Error('That picture is too detailed to upload. Take it again from a little further away.')}
+async function filesToPages(files,room){const out=[];
+  for(const f of files){if(out.length>=room)break;
+    if(f.type==='application/pdf'||/\.pdf$/i.test(f.name)){await loadScript(LIBS.pdf,()=>window.pdfjsLib);window.pdfjsLib.GlobalWorkerOptions.workerSrc=LIBS.worker[0];
+      const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
+      for(let p=1;p<=pdf.numPages&&out.length<room;p++){const pg=await pdf.getPage(p),v0=pg.getViewport({scale:1}),sc=Math.min(2,1600/Math.max(v0.width,v0.height)),vp=pg.getViewport({scale:sc}),c=document.createElement('canvas');c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;out.push(encodeJpeg(c))}}
+    else out.push(encodeJpeg(await drawableOf(f)))}
+  return out}
+async function asgOpen(a){
+  window.scrollTo(0,0);let pages=[],sub=a.sub;const locked=a.closed||(sub&&sub.status==='marked');
+  app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><button class="btn sm" id="back">← Homework</button></div><h1>${subj(a.subject).mas} ${esc(a.title)}</h1><p class="lede">${esc(subj(a.subject).title)} · out of ${a.max}${a.due?' · due '+dueTxt(a.due):''}</p></div></header><main class="wrap">
+  ${a.instructions?`<div class="panel"><h3>What to do</h3><div class="rich">${rich(a.instructions)}</div></div>`:''}<div class="panel" id="stat"></div><div class="panel" id="up"></div></main>${nav('asg')}`;wireNav();$('#back').onclick=assignments;
+  const stat=$('#stat'),up=$('#up');
+  const paintStatus=()=>{if(sub&&sub.status==='marked')stat.innerHTML=`<h3>Your mark</h3><div class="markbox"><div class="big">${sub.score}<small>/${a.max}</small></div><div><b>Teacher's feedback</b><div class="rich">${sub.feedback?rich(sub.feedback):'<p class="hint">No written feedback.</p>'}</div></div></div>`;
+    else if(sub&&sub.status==='returned')stat.innerHTML=`<h3>Your teacher asked you to try again</h3><div class="rich">${rich(sub.feedback||'Please look at your work again and hand it in once more.')}</div>`;
+    else if(sub)stat.innerHTML=`<h3>Handed in ✓</h3><p class="hint">Your teacher will mark it soon. You can replace your pages until it is marked.</p>`;
+    else stat.innerHTML=`<h3>Not handed in yet</h3>${a.closed?'<p class="hint">This homework is closed.</p>':''}`};paintStatus();
+  const paintUp=()=>{const gal=pages.length?`<div class="thumbs">${pages.map((d,i)=>`<figure><img src="${d}" alt="Page ${i+1}"><figcaption>Page ${i+1} ${locked?'':`<button class="link" data-rm="${i}">Remove</button>`}</figcaption></figure>`).join('')}</div>`:'<p class="hint">No pages yet.</p>';
+    up.innerHTML=locked?`<h3>Your pages</h3>${gal}`:`<h3>${sub?'Replace your pages':'Hand in your work'}</h3><p class="hint">Up to 5 pages. Take clear photos in good light, with the whole page in view.</p>${gal}<div class="actions"><label class="btn primary" style="cursor:pointer">📷 Take or choose photos<input type="file" id="pf" accept="image/*,.pdf,application/pdf" multiple hidden></label><button class="btn good" id="send" ${pages.length?'':'disabled'}>⬆ Hand in (${pages.length} page${pages.length===1?'':'s'})</button></div><div id="um"></div>`;
+    up.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{pages.splice(+b.dataset.rm,1);paintUp()});const pf=$('#pf');
+    if(pf){pf.onchange=async()=>{const um=$('#um');um.innerHTML='<div class="msg okm">Getting your pages ready…</div>';try{const add=await filesToPages([...pf.files],5-pages.length);if(!add.length)throw new Error('You already have 5 pages. Remove one first.');pages=pages.concat(add);paintUp()}catch(e){um.innerHTML=`<div class="msg err">${esc(e.message||'Could not read that file.')}</div>`}};
+      $('#send').onclick=async()=>{const b=$('#send');b.disabled=true;b.textContent='Sending…';const r=await api('asgSubmit',{aid:a.id,pages});if(!r.ok){$('#um').innerHTML=`<div class="msg err">${esc(r.error)}</div>`;b.disabled=false;b.textContent='⬆ Hand in';return}sub=a.sub=r.sub;confetti();toast('Handed in! Your teacher will mark it.',4500);paintStatus();paintUp()}}};
+  if(sub){const r=await api('asgPages',{aid:a.id});if(r.ok)pages=r.pages||[]}paintUp();
+  if(sub&&sub.status==='marked'&&!sub.seen){api('asgSeen',{aid:a.id});sub.seen=true;S.asgUnseen=Math.max(0,(S.asgUnseen||0)-1)}}
+/* ---- me ---- */
+function me(){
+  window.scrollTo(0,0);stopSpeak();const n=starsTotal(),lv=levelOf(n);
+  app.innerHTML=`<header class="hero"><div class="wrap"><h1>${lv.L[2]} ${esc(S.fullName||S.username)}</h1><p class="lede">${lv.L[1]} · ⭐ ${n} stars · 🔥 ${streakNow()} day streak</p></div></header><main class="wrap"><div class="panel"><h3>Pick your colours</h3><div class="themes">${[['sunny','☀️','linear-gradient(135deg,#ffe3a3,#6d3fe0)'],['candy','🍬','linear-gradient(135deg,#fbd0ee,#b01e95)'],['ocean','🌊','linear-gradient(135deg,#b8e4ff,#0b6fc2)'],['jungle','🌴','linear-gradient(135deg,#c7efb5,#1f8a3b)']].map(([t,e,g])=>`<button class="th ${S.theme===t?'on':''}" data-th="${t}" style="background:${g}" aria-label="${t} theme">${e}</button>`).join('')}</div></div>
+  <div class="panel"><h3>Sounds</h3><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="snd" style="width:auto" ${S.sound?'checked':''}> Play happy sounds when I answer</label></div>
+  <div class="panel"><h3>Badges</h3><div class="chips">${LEVELS.map(l=>`<span class="cchip ${n>=l[0]?'ok':''}">${l[2]} ${l[1]} · ${l[0]}⭐</span>`).join('')}</div></div>
+  <div class="actions"><button class="btn danger" id="so">Sign out</button></div><p class="hint">${APP_NAME} ${APP_VERSION}</p></main>${nav('me')}`;wireNav();
+  app.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{setTheme(b.dataset.th);queueSave();me()});$('#snd').onchange=e=>{S.sound=e.target.checked;lsSet('bpz_snd',S.sound?'1':'0');beep('ok')};$('#so').onclick=signOut}
+
+/* =============== administrator =============== */
+let ADM_TAB='lessons';
+const nm_=s=>esc(s.fullName||s.username)+(s.fullName?` <span class="meta">(${esc(s.username)})</span>`:'');
+async function adminHome(tab){
+  if(tab)ADM_TAB=tab;window.scrollTo(0,0);document.body.style.paddingBottom='0';
+  const r=await api('me');if(r.ok)S.pending=r.pending||0;
+  app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><span class="brandn">🦉 ${APP_NAME} · Teacher</span><button class="btn sm" id="so">Sign out</button></div></div></header><main class="wrap" style="padding-bottom:40px"><div class="admtabs" role="tablist">${[['lessons','📚 Lessons'],['learners','👧 Learners'+(S.pending?` (${S.pending} new)`:'')],['asg','📬 Homework'],['set','⚙️ Settings & backup']].map(([k,l])=>`<button data-at="${k}" class="${ADM_TAB===k?'on':''}">${l}</button>`).join('')}</div><div id="ap"></div></main>`;
+  $('#so').onclick=signOut;app.querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>adminHome(b.dataset.at));
+  const ap=$('#ap');({lessons:adminLessons,learners:adminLearners,asg:adminAssign,set:adminSettings})[ADM_TAB](ap)}
+/* ---------- learners ---------- */
+async function adminLearners(ap){
+  const r=await api('listUsers');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  const pend=r.users.filter(u=>u.status==='pending'),rest=r.users.filter(u=>u.status!=='pending');
+  const card=u=>`<div class="ucard"><div><b>${nm_(u)}</b><span class="badge ${u.status==='active'?'':'d'}">${u.status}</span>${u.resetReq?'<span class="badge d">asked for a new password</span>':''}<div class="meta">📞 ${esc(u.phone)} · 🔑 ${r.vaultSet?(u.pw?`<span class="pw" data-pw="${esc(u.pw)}">show</span>`:'not stored'):'not stored (set PASSWORD_VAULT_KEY)'}</div><div class="meta">⭐ ${u.stars} · ${u.lessonsDone} lessons read · 🔥 ${u.streak} · last in ${u.lastLogin?fmtD(u.lastLogin):'never'}</div></div>
+  <div class="actions" style="margin:0">${u.status==='pending'?`<button class="btn sm good" data-st="active" data-u="${esc(u.username)}">Approve</button><button class="btn sm danger" data-st="rejected" data-u="${esc(u.username)}">Reject</button>`:`<button class="btn sm" data-pwr="${esc(u.username)}">New password</button><button class="btn sm" data-rp="${esc(u.username)}">Reset progress</button><button class="btn sm" data-st="${u.status==='active'?'deactivated':'active'}" data-u="${esc(u.username)}">${u.status==='active'?'Deactivate':'Activate'}</button>`}<button class="btn sm danger" data-del="${esc(u.username)}">Delete</button></div></div>`;
+  ap.innerHTML=`${pend.length?`<div class="panel"><h3>Waiting for approval (${pend.length})</h3>${pend.map(card).join('')}<div class="actions"><button class="btn primary" id="aa">Approve all</button></div></div>`:''}<div class="panel"><h3>Learners (${rest.length})</h3>${rest.map(card).join('')||'<p>No learners yet.</p>'}</div>`;
+  const again=()=>adminLearners(ap);
+  ap.querySelectorAll('.pw').forEach(s=>s.onclick=()=>{s.textContent=s.textContent==='show'?s.dataset.pw:'show'});
+  ap.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const x=await api('setStatus',{username:b.dataset.u,status:b.dataset.st});toast(x.ok?'Done':x.error);adminHome()});
+  ap.querySelectorAll('[data-pwr]').forEach(b=>b.onclick=async()=>{const p=prompt('New password for '+b.dataset.pwr+' (at least 8 characters):');if(!p)return;const x=await api('adminResetPassword',{username:b.dataset.pwr,newPassword:p});toast(x.ok?'Password changed':x.error);if(x.ok)again()});
+  ap.querySelectorAll('[data-rp]').forEach(b=>b.onclick=async()=>{if(!confirm('Reset all stars, lessons and streak for '+b.dataset.rp+'?'))return;const x=await api('adminResetProgress',{username:b.dataset.rp});toast(x.ok?'Progress reset':x.error)});
+  ap.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete '+b.dataset.del+' and all their work? This cannot be undone.'))return;const x=await api('deleteUser',{username:b.dataset.del});toast(x.ok?'Deleted':x.error);adminHome()});
+  const aa=$('#aa');if(aa)aa.onclick=async()=>{const x=await api('approveAll');toast(x.ok?x.approved+' approved':x.error);adminHome()}}
+/* ---------- importers: Word / PDF -> reading text ---------- */
+function htmlToMarkup(html){
+  const d=new DOMParser().parseFromString(html,'text/html'),out=[];
+  const inl=n=>{let s='';n.childNodes.forEach(c=>{if(c.nodeType===3)s+=c.nodeValue;else if(c.nodeType===1){const t=c.tagName.toLowerCase();if(t==='img')return;const i=inl(c);if(t==='strong'||t==='b')s+=i.trim()?'**'+i.trim()+'** ':'';else if(t==='sup')s+='^{'+i+'}';else if(t==='sub')s+='_{'+i+'}';else if(t==='br')s+='\n';else s+=i}});return s};
+  const clean=s=>s.replace(/\*\*\s*\*\*/g,'').replace(/[ \t]+/g,' ').replace(/ ([,.;:!?])/g,'$1').trim();
+  d.body.childNodes.forEach(n=>{if(n.nodeType!==1)return;const t=n.tagName.toLowerCase();
+    if(/^h[1-6]$/.test(t)){const x=clean(inl(n).replace(/\*\*/g,''));if(x)out.push('## '+x);return}
+    if(t==='ul'||t==='ol'){let k=0;n.querySelectorAll(':scope>li').forEach(li=>{const x=clean(inl(li));if(x)out.push((t==='ul'?'- ':(++k)+'. ')+x)});out.push('');return}
+    if(t==='table'){n.querySelectorAll('tr').forEach(tr=>{const cells=[...tr.children].map(c=>clean(inl(c))).filter(Boolean);if(cells.length)out.push('- '+cells.join(' | '))});out.push('');return}
+    if(t==='p'){const x=clean(inl(n));if(!x)return;const bare=x.replace(/\*\*/g,'');if(/^\*\*[^*]+\*\*$/.test(x)&&bare.split(/\s+/).length<=8&&!/[.?!]$/.test(bare))out.push('','## '+bare,'');else out.push(x,'')}});
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()}
+async function readDocx(file){await loadScript(LIBS.mammoth,()=>window.mammoth);const r=await window.mammoth.convertToHtml({arrayBuffer:await file.arrayBuffer()},{convertImage:window.mammoth.images.imgElement(()=>Promise.resolve({src:''}))});return htmlToMarkup(r.value)}
+async function readPdf(file){
+  await loadScript(LIBS.pdf,()=>window.pdfjsLib);window.pdfjsLib.GlobalWorkerOptions.workerSrc=LIBS.worker[0];
+  const pdf=await window.pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise,lines=[];
+  for(let p=1;p<=pdf.numPages;p++){const tc=await (await pdf.getPage(p)).getTextContent(),rows=new Map();
+    tc.items.forEach(it=>{if(!it.str||!it.str.trim()&&!it.hasEOL&&it.str!==' ')return;const y=Math.round(it.transform[5]/2);const r=rows.get(y)||{y:it.transform[5],h:0,xs:[]};r.h=Math.max(r.h,it.height||Math.abs(it.transform[3])||0);r.xs.push([it.transform[4],it.str,/bold/i.test(it.fontName||'')]);rows.set(y,r)});
+    [...rows.values()].sort((a,b)=>b.y-a.y).forEach(r=>{r.xs.sort((a,b)=>a[0]-b[0]);const txt=r.xs.map(x=>x[1]).join('').replace(/\s+/g,' ').trim();if(txt)lines.push({t:txt,h:r.h,y:r.y,b:r.xs.every(x=>x[2]||!x[1].trim()),pg:p})});}
+  const hs=lines.map(l=>l.h).filter(Boolean).sort((a,b)=>a-b),med=hs[Math.floor(hs.length/2)]||10,out=[];let prev=null;
+  for(const l of lines){const head=(l.h>med*1.22||(l.b&&l.t.split(/\s+/).length<=8&&!/[.?!,]$/.test(l.t)))&&l.t.length<=90,bullet=/^([•\-*–]|\d{1,2}[.)])\s+/.test(l.t);
+    const gap=prev&&prev.pg===l.pg?prev.y-l.y:0,newPara=!prev||prev.pg!==l.pg&&/[.?!:]$/.test(prev.t)||gap>l.h*1.9||head||bullet||(prev&&prev.head);
+    if(head){out.push('','## '+l.t,'')}else if(bullet){out.push(l.t.replace(/^[•–*]\s+/,'- '))}else if(newPara||!out.length||!out[out.length-1]){out.push('',l.t)}else out[out.length-1]+=' '+l.t;l.head=head;prev=l}
+  return out.join('\n').replace(/\n{3,}/g,'\n\n').trim()}
+const QMARK=/^(##\s*)?(\*\*)?\s*(questions?|exercises?|test yourself|quiz|practice( questions)?|check your understanding|review questions|assessment|self[- ]?test|let'?s test)\b.{0,30}$/i;
+function splitLesson(text,fname){
+  let lines=text.replace(/\r/g,'').split('\n'),qi=lines.findIndex(l=>QMARK.test(l.trim())&&l.trim().length<60);
+  const read=(qi>=0?lines.slice(0,qi):lines).join('\n').trim(),qtext=qi>=0?lines.slice(qi+1).join('\n').trim():'';
+  let body=read,title=fname.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).trim();
+  const m=body.match(/^##\s+(.+)\n+/);if(m&&m[1].length<=70){title=m[1];body=body.slice(m[0].length)}
+  const W=s=>(s.match(/\S+/g)||[]).length,tot=W(body),n=tot<150?1:tot<500?2:tot<=1800?3:Math.min(6,Math.round(tot/600));
+  const units=[];body.split(/\n\s*\n/).forEach(b=>{b=b.trim();if(!b)return;if(/^##\s/.test(b)&&!b.includes('\n')&&units.length===0){units.push(b);return}units.push(b)});
+  const merged=[];for(let i=0;i<units.length;i++){const u=units[i];if(/^##\s[^\n]*$/.test(u)&&i+1<units.length){units[i+1]=u+'\n'+units[i+1]}else merged.push(u)}
+  const pages=[],target=tot/n;let acc=[],w=0;
+  merged.forEach((u,i)=>{const uw=W(u),isH=/^##\s/.test(u);if(acc.length&&pages.length<n-1&&(w>=target||(isH&&w>=target*.6))){pages.push(acc);acc=[];w=0}acc.push(u);w+=uw});if(acc.length)pages.push(acc);
+  const out=pages.map((p,i)=>{let b=p.join('\n\n'),t='';const h=b.match(/^##\s+(.+)\n+/);if(h){t=h[1];b=b.slice(h[0].length)}return{title:t||'Part '+(i+1),body:b.trim()}});
+  return{title,pages:out.length?out:[{title:'Part 1',body:''}],qtext}}
+function parseQs(text){
+  const lines=String(text||'').replace(/\r/g,'').split('\n'),qs=[],warn=[];let cur=null,ctx='q';
+  const blank=s=>s.replace(/_{2,}|\.{4,}|…{2,}/g,'___');
+  const ansIn=s=>{const m=s.match(/^(.*?)\bans(?:wer)?\s*[:=]\s*(.*)$/i);return m?[m[1].trim(),m[2].trim()]:[s.trim(),null]};
+  const flush=()=>{if(!cur)return;const c=cur;cur=null;
+    if(c.t==='mcq'){const ci='ABCDE'.indexOf((c.ans||'').trim().charAt(0).toUpperCase());if(c.o.length<2)warn.push('Question "'+c.q.slice(0,40)+'" has fewer than 2 options.');else if(ci<0||ci>=c.o.length)warn.push('Question "'+c.q.slice(0,40)+'" has no Answer line.');else qs.push({t:'mcq',q:c.q.trim(),o:c.o.map(x=>x.trim()),c:ci,e:(c.e||'').trim()})}
+    else if(c.t==='fib'){const q=blank(c.q.trim());if((q.match(/___/g)||[]).length!==1||!c.ans)warn.push('Fill-in "'+c.q.slice(0,40)+'" needs one blank and an Answer.');else qs.push({t:'fib',q,a:c.ans.trim(),e:(c.e||'').trim()})}
+    else{const parts=c.parts.map(p=>{const mm=p.q.match(/\[(\d{1,2})\]/),q=p.q.replace(/\[\d{1,2}\]/,'').trim();let m=mm?+mm[1]:0,a='',pts=[];const ans=(p.ans||'').trim();if(ans.includes(';')){pts=ans.split(';').map(x=>x.trim()).filter(Boolean);if(!m)m=pts.length}else{a=ans;if(!m)m=1}return{q,m,a,pts}});
+      if(!parts.length||parts.some(p=>!p.q||(!p.a&&!p.pts.length)))warn.push('Structured "'+c.q.slice(0,40)+'" needs parts (a), (b)… each with an Answer.');else qs.push({t:'st',q:c.q.trim(),parts})}};
+  for(const raw of lines){const l=raw.trim();if(!l)continue;let m;
+    if((m=l.match(/^(?:fill|fib)\s*[:.\-]\s*(.*)$/i))){flush();const [q,a]=ansIn(m[1]);cur={t:'fib',q,ans:a};ctx='q';continue}
+    if((m=l.match(/^(?:structured|st)\s*[:.\-]\s*(.*)$/i))){flush();cur={t:'st',q:m[1],parts:[]};ctx='q';continue}
+    if(cur&&cur.t==='st'&&(m=l.match(/^\(([a-h])\)\s*(.*)$/i))){const [q,a]=ansIn(m[2]);cur.parts.push({q,ans:a});ctx='p';continue}
+    if((m=l.match(/^(\d{1,3})[.)]\s+(.*)$/))&&!(cur&&cur.t==='st'&&false)){flush();cur={t:'mcq',q:m[2],o:[],ans:null};ctx='q';continue}
+    if(cur&&cur.t==='mcq'&&(m=l.match(/^([A-E])[.)]\s+(.*)$/))){cur.o.push(m[2]);ctx='o';continue}
+    if(cur&&(m=l.match(/^(?:ans(?:wer)?|correct(?: answer)?)\s*[:.\-=]\s*(.*)$/i))){if(cur.t==='st'){const p=cur.parts[cur.parts.length-1];if(p)p.ans=m[1]}else cur.ans=m[1];ctx='a';continue}
+    if(cur&&(m=l.match(/^(?:explain|explanation|why|note)\s*[:.\-]\s*(.*)$/i))){cur.e=m[1];ctx='e';continue}
+    if(!cur)continue;
+    if(ctx==='q')cur.q+=' '+l;else if(ctx==='o')cur.o[cur.o.length-1]+=' '+l;else if(ctx==='e')cur.e+=' '+l;else if(ctx==='p'&&cur.parts.length){const p=cur.parts[cur.parts.length-1];p.ans!=null?p.ans+=' '+l:p.q+=' '+l}else if(ctx==='a'){if(cur.t==='st'){const p=cur.parts[cur.parts.length-1];if(p)p.ans+=' '+l}else cur.ans+=' '+l}}
+  flush();return{qs,warn}}
+function autoFib(pages){
+  const out=[],seen=new Set();
+  pages.forEach(p=>String(p.body||'').split('\n').forEach(line=>{if(/^##\s/.test(line))return;line=line.replace(/^([-•*]|\d+[.)])\s+/,'');
+    (line.match(/[^.!?]+[.!?]?/g)||[]).forEach(s=>{s=s.trim();const ts=s.match(/\*\*(.+?)\*\*/g);if(!ts||ts.length!==1)return;const term=ts[0].slice(2,-2).trim();if(!term||term.length>40||term.split(/\s+/).length>3||s.length<25||s.length>220)return;
+      const q=s.replace(ts[0],'___').replace(/\*\*|==/g,'');if(seen.has(q)||(q.match(/___/g)||[]).length!==1)return;seen.add(q);out.push({t:'fib',q,a:term,e:'',auto:true})})}));
+  return out.slice(0,12)}
+/* ---------- lessons list ---------- */
+async function adminLessons(ap){
+  const r=await api('lessonList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  S.lessons=r.lessons;
+  ap.innerHTML=`<div class="panel"><h3>Add lessons</h3><p class="hint">Upload a Word or PDF topic. It becomes a draft lesson split into reading pages (about 2 to 3). You then review it, add test questions and publish.</p>
+  <div class="two"><label class="f">Subject<select id="us">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label><label class="f">Word or PDF files<input type="file" id="uf" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple></label></div>
+  <div class="actions"><button class="btn primary" id="ub">Create draft(s) from file(s)</button><button class="btn" id="nb">＋ Write a lesson by hand</button></div><div id="um"></div></div>
+  ${SUBJ.map(s=>{const ls=r.lessons.filter(l=>l.subject===s.id);return `<div class="panel"><h3>${s.mas} ${s.title} (${ls.length})</h3>${ls.map(l=>`<div class="ucard"><div><b>${esc(l.emoji)} ${esc(l.title)}</b><span class="badge ${l.status==='published'?'':'d'}">${l.status}</span><div class="meta">${l.np} page${l.np>1?'s':''} · ${l.nq} question${l.nq===1?'':'s'} · order ${l.order}</div></div><div class="actions" style="margin:0"><button class="btn sm primary" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')||'<p class="hint">No lessons yet.</p>'}</div>`}).join('')}`;
+  $('#nb').onclick=()=>lessonEditor({subject:$('#us').value,title:'',emoji:'📘',order:r.lessons.filter(l=>l.subject===$('#us').value).length+1,status:'draft',pages:[{title:'',body:''}],questions:[]});
+  $('#ub').onclick=async()=>{const fs=[...$('#uf').files],um=$('#um');if(!fs.length)return um.innerHTML='<div class="msg err">Choose at least one file.</div>';const sid=$('#us').value;let made=[],bad=[];
+    for(let i=0;i<fs.length;i++){const f=fs[i];um.innerHTML=`<div class="msg okm">Reading ${esc(f.name)} (${i+1} of ${fs.length})…</div>`;
+      try{const txt=/\.pdf$/i.test(f.name)?await readPdf(f):await readDocx(f);if(txt.length<40)throw new Error('almost no text found (a scanned PDF has no text)');const sp=splitLesson(txt,f.name),pq=parseQs(sp.qtext),qs=pq.qs.concat(autoFib(sp.pages));
+        const L={subject:sid,title:sp.title,emoji:subj(sid).mas,order:r.lessons.filter(l=>l.subject===sid).length+made.length+1,status:'draft',pages:sp.pages,questions:qs,source:f.name,_warn:pq.warn,_auto:qs.filter(q=>q.auto).length};made.push(L)}
+      catch(e){bad.push(f.name+': '+(e.message||'could not be read'))}}
+    if(fs.length===1&&made.length===1)return lessonEditor(made[0],true);
+    let ok=0;for(const L of made){const x=await api('lessonSave',L);if(x.ok)ok++;else bad.push(L.title+': '+x.error)}
+    toast(ok+' draft'+(ok===1?'':'s')+' created');if(bad.length){adminLessons(ap);setTimeout(()=>{const u=$('#um');if(u)u.innerHTML=`<div class="msg err">${bad.map(esc).join('<br>')}</div>`},100)}else adminLessons(ap)};
+  ap.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{const x=await api('lessonGet',{id:b.dataset.e});if(x.ok)lessonEditor(x.lesson)});
+  ap.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{const x=await api('lessonStatus',{id:b.dataset.p,status:b.dataset.s});toast(x.ok?'Done':x.error);adminLessons(ap)});
+  ap.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this lesson? This cannot be undone.'))return;const x=await api('lessonDelete',{id:b.dataset.d});toast(x.ok?'Deleted':x.error);adminLessons(ap)})}
+/* ---------- lesson editor ---------- */
+function lessonEditor(L0,fresh){
+  const ED=JSON.parse(JSON.stringify(L0));window.scrollTo(0,0);let showPrev=false;
+  const draw=()=>{
+    const qh=(q,i)=>{const head=`${q.t==='mcq'?'Multiple choice':q.t==='fib'?'Fill-in':'Structured'}${q.auto?' (auto-made, please check)':''}: ${String(q.q||'').slice(0,60)}`;
+      let body='';
+      if(q.t==='mcq')body=`<label class="f">Question<textarea data-q="${i}" data-f="q">${esc(q.q)}</textarea></label>${q.o.map((o,k)=>`<div class="row"><input type="radio" name="c${i}" ${q.c===k?'checked':''} data-c="${i}:${k}" aria-label="Correct answer"><span class="l">${'ABCDE'[k]}</span><input data-o="${i}:${k}" value="${esc(o)}">${q.o.length>2?`<button class="btn sm danger" data-ro="${i}:${k}">✕</button>`:''}</div>`).join('')}${q.o.length<5?`<button class="btn sm" data-ao="${i}" style="margin-top:6px">＋ option</button>`:''}<label class="f">Explanation (optional)<input data-q="${i}" data-f="e" value="${esc(q.e||'')}"></label>`;
+      else if(q.t==='fib')body=`<label class="f">Sentence with one blank written as ___<textarea data-q="${i}" data-f="q">${esc(q.q)}</textarea></label><label class="f">Correct answer (separate accepted alternatives with |)<input data-q="${i}" data-f="a" value="${esc(q.a||'')}"></label><label class="f">Explanation (optional)<input data-q="${i}" data-f="e" value="${esc(q.e||'')}"></label>`;
+      else body=`<label class="f">Question<textarea data-q="${i}" data-f="q">${esc(q.q)}</textarea></label>${q.parts.map((p,k)=>`<div class="qed" style="background:var(--card)"><b>Part ${'abcdefgh'[k]}</b> <button class="btn sm danger" data-rp="${i}:${k}" style="float:right">remove</button><label class="f">Part question<textarea data-pp="${i}:${k}:q">${esc(p.q)}</textarea></label><div class="two"><label class="f">Marks<input type="number" min="1" max="20" data-pp="${i}:${k}:m" value="${p.m}"></label><label class="f">Marking points, one per line (1 mark each, optional)<textarea data-pp="${i}:${k}:pts">${esc((p.pts||[]).join('\n'))}</textarea></label></div><label class="f">Model answer<textarea data-pp="${i}:${k}:a">${esc(p.a||'')}</textarea></label></div>`).join('')}<button class="btn sm" data-ap="${i}">＋ part</button>`;
+      return `<details class="qed" ${fresh||q.auto?'':''}><summary><b>${i+1}.</b> ${esc(head)}</summary>${body}<div class="actions"><button class="btn sm danger" data-rq="${i}">Delete question</button><button class="btn sm" data-mv="${i}:-1">↑</button><button class="btn sm" data-mv="${i}:1">↓</button></div></details>`};
+    app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Lessons</button><span class="brandn">${ED.id?'Edit lesson':'New lesson'}</span></div></div></header><main class="wrap" style="padding-bottom:60px">
+    ${L0._warn&&L0._warn.length?`<div class="msg err"><b>These questions in your file could not be read:</b><br>${L0._warn.map(esc).join('<br>')}</div>`:''}${L0._auto?`<div class="msg okm">${L0._auto} fill-in question${L0._auto>1?'s were':' was'} drafted from the <b>bold</b> key terms in your text. Check them, keep only the facts that never change, and delete the rest.</div>`:''}
+    <div class="panel"><div class="two"><label class="f">Title<input id="lt" value="${esc(ED.title)}"></label><label class="f">Subject<select id="ls">${SUBJ.map(s=>`<option value="${s.id}" ${ED.subject===s.id?'selected':''}>${s.title}</option>`).join('')}</select></label></div><div class="two"><label class="f">Emoji<input id="le" maxlength="4" value="${esc(ED.emoji)}"></label><label class="f">Order in the subject<input id="lo" type="number" min="0" max="9999" value="${ED.order}"></label></div><p class="hint">Source: ${esc(ED.source||'typed by hand')}</p></div>
+    <div class="panel"><h3>Reading pages (${ED.pages.length})</h3><p class="hint">Aim for 2 to 3 short, lively pages. Formatting: <code>**bold**</code> <code>==highlight==</code> <code>## heading</code> <code>- bullet</code> <code>1. step</code> <code>&gt; tip</code> <code>^{2}</code> <code>_{2}</code> <code>[[1/2]]</code></p>
+    ${ED.pages.map((p,i)=>`<div class="qed"><b>Page ${i+1}</b> ${ED.pages.length>1?`<button class="btn sm danger" data-rg="${i}" style="float:right">remove page</button>`:''}<label class="f">Page title<input data-pg="${i}:title" value="${esc(p.title)}"></label><label class="f">Text<textarea data-pg="${i}:body" style="min-height:200px">${esc(p.body)}</textarea></label></div>`).join('')}
+    <div class="actions"><button class="btn sm" id="ag">＋ Add a page</button><button class="btn sm" id="pv">${showPrev?'Hide':'Show'} preview</button></div>${showPrev?ED.pages.map((p,i)=>`<div class="prev"><div class="qn">PAGE ${i+1}</div>${p.title?`<h3 style="color:var(--brand)">${esc(p.title)}</h3>`:''}<div class="rich">${rich(p.body)}</div></div>`).join(''):''}</div>
+    <div class="panel"><h3>Test questions (${ED.questions.length})</h3><p class="hint">Learners take multiple choice first, then fill-in, then structured questions.</p>${ED.questions.map(qh).join('')||'<p class="hint">None yet.</p>'}
+    <div class="actions"><button class="btn sm" data-nq="mcq">＋ Multiple choice</button><button class="btn sm" data-nq="fib">＋ Fill-in</button><button class="btn sm" data-nq="st">＋ Structured</button><button class="btn sm" id="af">✨ Draft fill-ins from bold terms</button></div>
+    <details><summary><b>Paste or upload questions as text</b></summary><p class="hint">Format:<br><code>1. Question text</code> · <code>A. option</code> … · <code>Answer: B</code> · <code>Explain: why</code><br><code>Fill: Plants make food by ___. Answer: photosynthesis|photo synthesis</code><br><code>Structured: Question</code> then <code>(a) Part text [2] Answer: point one; point two</code></p><textarea id="pq" style="min-height:160px" placeholder="Paste questions here"></textarea><div class="actions"><label class="btn sm" style="cursor:pointer">Upload Word/PDF of questions<input type="file" id="pqf" accept=".docx,.pdf" hidden></label><button class="btn sm primary" id="pqb">Add these questions</button></div><div id="pqm"></div></details></div>
+    <div id="em"></div><div class="actions" style="position:sticky;bottom:8px"><button class="btn primary big" id="sv">Save draft</button><button class="btn good big" id="pb">Save &amp; publish</button></div></main>`;
+    wire()};
+  const wire=()=>{
+    $('#bk').onclick=()=>{if(confirm('Leave without saving?'))adminHome('lessons')};
+    $('#lt').oninput=e=>ED.title=e.target.value;$('#ls').onchange=e=>ED.subject=e.target.value;$('#le').oninput=e=>ED.emoji=e.target.value;$('#lo').oninput=e=>ED.order=e.target.value;
+    app.querySelectorAll('[data-pg]').forEach(el=>el.oninput=()=>{const [i,f]=el.dataset.pg.split(':');ED.pages[+i][f]=el.value});
+    app.querySelectorAll('[data-rg]').forEach(b=>b.onclick=()=>{ED.pages.splice(+b.dataset.rg,1);draw()});$('#ag').onclick=()=>{ED.pages.push({title:'',body:''});draw()};$('#pv').onclick=()=>{showPrev=!showPrev;draw()};
+    app.querySelectorAll('[data-q]').forEach(el=>el.oninput=()=>{ED.questions[+el.dataset.q][el.dataset.f]=el.value});
+    app.querySelectorAll('[data-o]').forEach(el=>el.oninput=()=>{const [i,k]=el.dataset.o.split(':');ED.questions[+i].o[+k]=el.value});
+    app.querySelectorAll('[data-c]').forEach(el=>el.onchange=()=>{const [i,k]=el.dataset.c.split(':');ED.questions[+i].c=+k});
+    app.querySelectorAll('[data-ao]').forEach(b=>b.onclick=()=>{ED.questions[+b.dataset.ao].o.push('');draw()});
+    app.querySelectorAll('[data-ro]').forEach(b=>b.onclick=()=>{const [i,k]=b.dataset.ro.split(':').map(Number),q=ED.questions[i];q.o.splice(k,1);if(q.c>=q.o.length)q.c=0;draw()});
+    app.querySelectorAll('[data-pp]').forEach(el=>el.oninput=()=>{const [i,k,f]=el.dataset.pp.split(':'),p=ED.questions[+i].parts[+k];if(f==='pts')p.pts=el.value.split('\n').map(x=>x.trim()).filter(Boolean);else if(f==='m')p.m=+el.value;else p[f]=el.value});
+    app.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{ED.questions[+b.dataset.ap].parts.push({q:'',m:1,a:'',pts:[]});draw()});
+    app.querySelectorAll('[data-rp]').forEach(b=>b.onclick=()=>{const [i,k]=b.dataset.rp.split(':').map(Number);ED.questions[i].parts.splice(k,1);draw()});
+    app.querySelectorAll('[data-rq]').forEach(b=>b.onclick=()=>{ED.questions.splice(+b.dataset.rq,1);draw()});
+    app.querySelectorAll('[data-mv]').forEach(b=>b.onclick=()=>{const [i,d]=b.dataset.mv.split(':').map(Number),j=i+d;if(j<0||j>=ED.questions.length)return;[ED.questions[i],ED.questions[j]]=[ED.questions[j],ED.questions[i]];draw()});
+    app.querySelectorAll('[data-nq]').forEach(b=>b.onclick=()=>{const t=b.dataset.nq;ED.questions.push(t==='mcq'?{t,q:'',o:['',''],c:0,e:''}:t==='fib'?{t,q:'',a:'',e:''}:{t,q:'',parts:[{q:'',m:1,a:'',pts:[]}]});draw();const ds=app.querySelectorAll('details.qed');if(ds.length){const d=ds[ds.length-1];d.open=true;d.scrollIntoView({block:'center'})}});
+    $('#af').onclick=()=>{const a=autoFib(ED.pages.filter(p=>p.body)),have=new Set(ED.questions.map(q=>q.q)),add=a.filter(x=>!have.has(x.q));ED.questions.push(...add);toast(add.length?add.length+' fill-in questions drafted. Please check them.':'No suitable bold key terms found.');draw()};
+    const addText=txt=>{const r=parseQs(txt),pm=$('#pqm');ED.questions.push(...r.qs);pm.innerHTML=`<div class="msg ${r.qs.length?'okm':'err'}">${r.qs.length} question${r.qs.length===1?'':'s'} added.${r.warn.length?'<br>Could not read: '+r.warn.map(esc).join('<br>'):''}</div>`;if(r.qs.length)setTimeout(draw,r.warn.length?2500:600)};
+    $('#pqb').onclick=()=>addText($('#pq').value);
+    $('#pqf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const t=/\.pdf$/i.test(f.name)?await readPdf(f):await readDocx(f);$('#pq').value=t.replace(/^##\s+/gm,'').replace(/\*\*/g,'');toast('Loaded. Check the text, then press Add.')}catch(x){$('#pqm').innerHTML=`<div class="msg err">${esc(x.message)}</div>`}};
+    const save=async st=>{const em=$('#em');ED.status=st;const x=await api('lessonSave',{...ED,order:ED.order});if(!x.ok){em.innerHTML=`<div class="msg err">${esc(x.error)}</div>`;em.scrollIntoView({block:'center'});return}toast(st==='published'?'Published! Learners can see it.':'Draft saved');adminHome('lessons')};
+    $('#sv').onclick=()=>save('draft');$('#pb').onclick=()=>save('published')};
+  draw()}
+/* ---------- homework (administrator) ---------- */
+async function adminAssign(ap,view){
+  if(view&&view.subs)return adminAsgSubs(ap,view.subs);
+  const r=await api('asgAdminList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  const edit=view&&view.edit?r.assignments.find(a=>a.id===view.edit):null;
+  ap.innerHTML=`<div class="panel"><h3>${edit?'Edit homework':'New homework'}</h3><p class="hint">Learners see this under Homework. They photograph their work and upload it, and you mark it here.</p>
+  <div class="two"><label class="f">Title<input id="at" value="${esc(edit?edit.title:'')}"></label><label class="f">Subject<select id="as">${SUBJ.map(m=>`<option value="${m.id}" ${edit&&edit.subject===m.id?'selected':''}>${m.title}</option>`).join('')}</select></label></div>
+  <div class="two"><label class="f">Marked out of<input id="am" type="number" min="1" max="1000" value="${edit?edit.max:20}"></label><label class="f">Due date (optional)<input id="ad" type="date" value="${esc(edit?edit.due:'')}"></label></div>
+  <label class="f">Instructions<textarea id="ai" style="min-height:120px" placeholder="What should they do? You can use **bold**, - bullets and 1. steps.">${esc(edit?edit.instructions:'')}</textarea></label>
+  ${edit?`<label style="display:flex;gap:8px;margin:10px 0"><input type="checkbox" id="ac" style="width:auto" ${edit.closed?'checked':''}> Closed (learners can no longer hand in)</label>`:''}
+  <div class="actions"><button class="btn primary" id="asv">${edit?'Save changes':'Publish homework'}</button>${edit?'<button class="btn" id="acn">Cancel</button>':''}</div><div id="amg"></div></div>
+  <div class="panel"><h3>Homework (${r.assignments.length})</h3>${r.assignments.map(a=>`<div class="ucard"><div><b>${esc(a.title)}</b>${a.closed?'<span class="badge d">closed</span>':''}<div class="meta">${esc(subj(a.subject).title)} · out of ${a.max}${a.due?' · due '+dueTxt(a.due):''}</div><div class="meta">📥 ${a.submitted} to mark · ✅ ${a.marked} marked${a.returned?` · ↩ ${a.returned} returned`:''}</div></div><div class="actions" style="margin:0"><button class="btn sm primary" data-o="${a.id}">Open &amp; mark</button><button class="btn sm" data-e="${a.id}">Edit</button><button class="btn sm danger" data-d="${a.id}">Delete</button></div></div>`).join('')||'<p>None yet.</p>'}</div>`;
+  $('#asv').onclick=async()=>{const v=id=>($('#'+id)||{}).value||'';const x=await api('asgSave',{id:edit?edit.id:'',title:v('at'),subject:v('as'),max:v('am'),due:v('ad'),instructions:v('ai'),closed:!!($('#ac')||{}).checked});if(!x.ok){$('#amg').innerHTML=`<div class="msg err">${esc(x.error)}</div>`;return}toast(edit?'Saved':'Homework published');adminAssign(ap)};
+  const cn=$('#acn');if(cn)cn.onclick=()=>adminAssign(ap);
+  ap.querySelectorAll('[data-o]').forEach(b=>b.onclick=()=>adminAsgSubs(ap,b.dataset.o));ap.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{adminAssign(ap,{edit:b.dataset.e});window.scrollTo(0,0)});
+  ap.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this homework and every submission for it? This cannot be undone.'))return;const x=await api('asgDelete',{aid:b.dataset.d});toast(x.ok?'Deleted':x.error);adminAssign(ap)})}
+async function adminAsgSubs(ap,aid){
+  const r=await api('asgSubs',{aid});if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  const a=r.assignment,SN={submitted:'Waiting to be marked',marked:'Marked',returned:'Returned'};
+  ap.innerHTML=`<div class="panel"><button class="btn sm" id="bk">← All homework</button><h3 style="margin-top:10px">${esc(a.title)} <span class="meta">${esc(subj(a.subject).title)} · out of ${a.max}</span></h3>
+  ${r.subs.map(s=>`<div class="ucard"><div><b>${nm_(s)}</b> <span class="badge ${s.status==='submitted'?'d':''}">${SN[s.status]}${s.status==='marked'?' '+s.score+'/'+a.max:''}</span>${s.late?' <span class="badge d">late</span>':''}<div class="meta">${s.pages} page${s.pages>1?'s':''} · handed in ${fmtD(s.at)}</div></div><button class="btn sm ${s.status==='submitted'?'primary':''}" data-m="${esc(s.username)}">${s.status==='submitted'?'Mark':'View / change'}</button></div>`).join('')||'<p>Nothing handed in yet.</p>'}
+  ${r.missing.length?`<details style="margin-top:12px"><summary><b>Not handed in yet (${r.missing.length})</b></summary><p class="meta">${r.missing.map(m=>esc(m.fullName||m.username)).join(', ')}</p></details>`:''}</div>`;
+  $('#bk').onclick=()=>adminAssign(ap);ap.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>adminMark(ap,aid,b.dataset.m))}
+async function adminMark(ap,aid,u){
+  const r=await api('asgSubGet',{aid,username:u});if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
+  const a=r.assignment,s=r.sub,QUICK=['Well done!','Good effort. Check your working.','Show all your steps.','Check your spelling.','Please redo this question.','Neat work!'];
+  ap.innerHTML=`<div class="panel"><button class="btn sm" id="bk">← Back to the list</button><h3 style="margin-top:10px">${nm_({fullName:s.fullName,username:s.username})} · ${esc(a.title)}</h3><p class="hint">Click a page to enlarge it.</p><div class="pgs">${r.pages.map((d,i)=>`<img src="${d}" alt="Page ${i+1} of ${r.pages.length}" class="pg" tabindex="0">`).join('')||'<p>No pages.</p>'}</div>
+  <div class="two" style="margin-top:14px"><label class="f">Score (out of ${a.max}, halves allowed)<input id="sc" type="number" min="0" max="${a.max}" step="0.5" value="${s.status==='marked'?s.score:''}"></label><div class="f">Quick comments<div class="chips" style="margin-top:6px">${QUICK.map(q=>`<button type="button" class="cchip pick" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div></div></div>
+  <label class="f">Feedback for the learner<textarea id="fb" style="min-height:120px">${esc(s.feedback||'')}</textarea></label>
+  <div class="actions"><button class="btn primary" id="sv">Save mark</button><button class="btn good" id="svn">Save &amp; mark next</button><button class="btn" id="rt">↩ Return for resubmission</button><button class="btn danger" id="dl">Delete submission</button></div><div id="mm"></div></div>
+  <div class="modal hide" id="zm" role="dialog" aria-label="Enlarged page" style="overflow:auto;place-items:start center"><img id="zi" alt="" style="max-width:none;width:min(1500px,200%);background:#fff"></div>`;
+  const ctx=()=>({aid,username:u,score:$('#sc').value,feedback:$('#fb').value}),say=(m,ok)=>{$('#mm').innerHTML=`<div class="msg ${ok?'okm':'err'}">${esc(m)}</div>`};
+  $('#bk').onclick=()=>adminAsgSubs(ap,aid);
+  ap.querySelectorAll('.pg').forEach(i=>{const z=()=>{$('#zi').src=i.src;$('#zm').classList.remove('hide')};i.onclick=z;i.onkeydown=e=>{if(e.key==='Enter')z()}});$('#zm').onclick=()=>$('#zm').classList.add('hide');
+  ap.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const t=$('#fb');t.value=(t.value?t.value.replace(/\s+$/,'')+'\n':'')+b.dataset.q});
+  const save=async next=>{if($('#sc').value==='')return say('Enter a score first.');const x=await api('asgMark',ctx());if(!x.ok)return say(x.error);toast('Mark saved');if(next){const l=await api('asgSubs',{aid}),n=l.ok&&l.subs.find(z=>z.status==='submitted');if(n)return adminMark(ap,aid,n.username);toast('That was the last one waiting.')}adminAsgSubs(ap,aid)};
+  $('#sv').onclick=()=>save(false);$('#svn').onclick=()=>save(true);
+  $('#rt').onclick=async()=>{if(!confirm('Send this back so the learner can hand it in again?'))return;const x=await api('asgReturn',ctx());if(!x.ok)return say(x.error);toast('Returned');adminAsgSubs(ap,aid)};
+  $('#dl').onclick=async()=>{if(!confirm("Delete this learner's submission and mark?"))return;const x=await api('asgSubDelete',{aid,username:u});if(!x.ok)return say(x.error);toast('Deleted');adminAsgSubs(ap,aid)}}
+/* ---------- settings & backup ---------- */
+async function adminSettings(ap){
+  const r=await api('me');S.twoStep=r.twoStep;S.vaultSet=r.vaultSet;S.settings=r.settings;
+  ap.innerHTML=`<div class="panel"><h3>Subject challenge</h3><div class="two"><label class="f">Questions in a challenge<input id="mq" type="number" min="5" max="100" value="${S.settings.mockq}"></label><label class="f">Minutes allowed<input id="mt" type="number" min="5" max="180" value="${S.settings.mockt}"></label></div><div class="actions"><button class="btn primary" id="ss">Save</button></div></div>
+  <div class="panel"><h3>Backup</h3><p class="hint">Download a copy of all lessons, learners' progress and homework. Do this before every update.</p><div class="actions"><button class="btn primary" id="bk">⬇ Download backup</button><label class="btn" style="cursor:pointer">⬆ Restore lessons from a backup<input type="file" id="rf" accept=".json" hidden></label></div><div id="bm"></div></div>
+  <div class="panel"><h3>Two-step sign-in (you)</h3>${S.twoStep?'<p>✅ On. You need a 6-digit code from your authenticator app to sign in.</p><div class="actions"><label class="f" style="margin:0">Code to turn off<input id="tc" inputmode="numeric" style="max-width:160px"></label><button class="btn danger" id="toff">Turn off</button></div>':'<p class="hint">Adds a 6-digit code from an authenticator app (Google Authenticator, Microsoft Authenticator…).</p><div class="actions"><button class="btn" id="ton">Set up</button></div><div id="tsetup"></div>'}</div>
+  <div class="panel"><h3>Learners' passwords</h3><p>${S.vaultSet?'✅ You can see learners\' passwords in the Learners tab.':'⚠️ PASSWORD_VAULT_KEY is not set, so passwords are not stored readably. Add it in Cloudflare (Settings → Variables and Secrets) to see them.'}</p></div>
+  <div class="panel"><h3>Danger zone</h3><div class="actions"><button class="btn danger" id="rall">Reset everyone's progress</button></div></div><p class="hint">${APP_NAME} ${APP_VERSION}</p>`;
+  $('#ss').onclick=async()=>{const x=await api('setSettings',{mockq:$('#mq').value,mockt:$('#mt').value});toast(x.ok?'Saved':x.error);if(x.ok)S.settings=x.settings};
+  $('#bk').onclick=async()=>{const x=await api('exportAll');if(!x.ok)return $('#bm').innerHTML=`<div class="msg err">${esc(x.error)}</div>`;const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(x)],{type:'application/json'}));a.download='bece-prep-zone-backup-'+dayKey()+'.json';a.click();$('#bm').innerHTML='<div class="msg okm">Backup downloaded.</div>'};
+  $('#rf').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const j=JSON.parse(await f.text());if(!Array.isArray(j.lessons))throw new Error('This file has no lessons.');if(!confirm('Restore '+j.lessons.length+' lessons? Lessons with the same id are replaced.'))return;const x=await api('importLessons',{lessons:j.lessons});$('#bm').innerHTML=`<div class="msg ${x.ok?'okm':'err'}">${x.ok?x.imported+' lessons restored.':esc(x.error)}</div>`}catch(x){$('#bm').innerHTML=`<div class="msg err">${esc(x.message)}</div>`}};
+  const ton=$('#ton');if(ton)ton.onclick=async()=>{const x=await api('totpSetup');if(!x.ok)return toast(x.error);$('#tsetup').innerHTML=`<div class="msg okm">In your authenticator app choose "enter a setup key" and type:<br><b style="font-size:20px;letter-spacing:2px">${esc(x.secret)}</b><br>Then enter the 6-digit code it shows:</div><div class="actions"><input id="tc2" inputmode="numeric" style="max-width:160px"><button class="btn primary" id="ten">Turn on</button></div>`;$('#ten').onclick=async()=>{const y=await api('totpEnable',{code:$('#tc2').value});toast(y.ok?'Two-step sign-in is on':y.error);if(y.ok)adminSettings(ap)}};
+  const toff=$('#toff');if(toff)toff.onclick=async()=>{const y=await api('totpDisable',{code:$('#tc').value});toast(y.ok?'Turned off':y.error);if(y.ok)adminSettings(ap)};
+  $('#rall').onclick=async()=>{if(!confirm("Reset EVERY learner's stars, lessons and streak? This cannot be undone."))return;const x=await api('adminResetAllProgress');toast(x.ok?x.reset+' learners reset':x.error)}}
+boot();
+
+</script></body></html>
