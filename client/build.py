@@ -1,6 +1,6 @@
 import os
 here=os.path.dirname(os.path.abspath(__file__))
-css=open(here+'/style.css').read();js=''.join(open(here+'/'+f).read()+'\n' for f in ['js1.js','js2.js','js3.js'])
+css=open(here+'/style.css').read();js=''.join(open(here+'/'+f).read()+'\n' for f in ['js1.js','js2.js','js3.js','js4.js'])
 html=f'''<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>BECE Prep Zone</title>
 <meta name="description" content="Fun BECE revision for Integrated Science, Mathematics and Ga."><meta name="theme-color" content="#6d3fe0">

@@ -2,7 +2,8 @@
 // Secrets: ADMIN_USERNAME, ADMIN_PASSWORD, PASSWORD_VAULT_KEY
 import crypto from "node:crypto";
 
-const SUBJECTS = ["sci", "math", "ga"];
+const SUBJECTS = ["sci", "math", "ga", "comp"];
+const LEVELS = ["b7", "b8", "b9"];
 const SESSION_MS = 7 * 24 * 3600 * 1000, ADMIN_SESSION_MS = 12 * 3600 * 1000;
 const DEFAULT_SETTINGS = { mockq: 30, mockt: 45 };
 const THEMES = ["sunny", "candy", "ocean", "jungle"];
@@ -82,7 +83,7 @@ const validPhone = (p) => { const d = String(p ?? "").replace(/\D/g, ""); return
 
 // ---------------- lessons ----------------
 const QTYPES = ["mcq", "fib", "st"];
-export function cleanQuestion(p) {
+export function cleanQuestion(p, draft = false) {
   if (!p || typeof p !== "object") return { error: "Bad question." };
   const t = QTYPES.includes(p.t) ? p.t : "", q = clip(p.q, 1200);
   if (!t) return { error: "Unknown question type." };
@@ -99,26 +100,28 @@ export function cleanQuestion(p) {
     const a = clip(p.a, 200); if (!a || a.split("|").every((x) => !x.trim())) return { error: "Enter the answer for the blank." };
     return { out: { t, q, a, e: clip(p.e, 600) } };
   }
-  const parts = (Array.isArray(p.parts) ? p.parts : []).slice(0, 8).map((x) => ({ q: clip(x && x.q, 600), m: Math.floor(Number(x && x.m)), a: clip(x && x.a, 1200), pts: (Array.isArray(x && x.pts) ? x.pts : []).slice(0, 8).map((y) => clip(y, 200)).filter(Boolean) }));
+  const cleanIdeas = (v) => (Array.isArray(v) ? v : []).slice(0, 10).map((y) => ({ t: clip(y && y.t, 240), k: (Array.isArray(y && y.k) ? y.k : []).slice(0, 10).map((z) => clip(z, 40)).filter(Boolean) })).filter((y) => y.t);
+  const parts = (Array.isArray(p.parts) ? p.parts : []).slice(0, 8).map((x) => ({ q: clip(x && x.q, 600), m: Math.floor(Number(x && x.m)), a: clip(x && x.a, 1500), pts: (Array.isArray(x && x.pts) ? x.pts : []).slice(0, 8).map((y) => clip(y, 200)).filter(Boolean), ideas: cleanIdeas(x && x.ideas) }));
   if (!parts.length) return { error: "A structured question needs at least one part." };
-  for (const x of parts) { if (!x.q) return { error: "Every part needs its question." }; if (!(x.m >= 1 && x.m <= 20)) return { error: "Marks for each part must be 1 to 20." }; if (!x.a && !x.pts.length) return { error: "Every part needs a model answer." }; }
+  for (const x of parts) { if (!x.q) return { error: "Every part needs its question." }; if (!(x.m >= 1 && x.m <= 20)) return { error: "Marks for each part must be 1 to 20." }; if (!draft && !x.a && !x.pts.length && !x.ideas.length) return { error: "Every part needs a model answer or key ideas." }; if (!draft && x.ideas.some((y) => !y.k.length)) return { error: "Every key idea needs at least one key word." }; }
   return { out: { t, q, parts } };
 }
 export function cleanLesson(b, old) {
   const subject = SUBJECTS.includes(b.subject) ? b.subject : ""; if (!subject) return { error: "Choose a subject." };
   const title = clip(b.title, 120); if (!title) return { error: "Enter a title." };
-  const pages = (Array.isArray(b.pages) ? b.pages : []).slice(0, 6).map((x) => ({ title: clip(x && x.title, 120), body: clip(x && x.body, 12000) })).filter((x) => x.body);
-  if (!pages.length) return { error: "Add at least one reading page." };
+  const kind = b.kind === "test" ? "test" : "learn", level = LEVELS.includes(b.level) ? b.level : "b7";
+  const pages = (Array.isArray(b.pages) ? b.pages : []).slice(0, 8).map((x) => ({ title: clip(x && x.title, 120), body: clip(x && x.body, 12000) })).filter((x) => x.body);
+  if (kind === "learn" && !pages.length) return { error: "Add at least one reading page." };
   const qs = [], raw = Array.isArray(b.questions) ? b.questions : [];
   if (raw.length > 80) return { error: "At most 80 questions per lesson." };
-  for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i]); if (r.error) return { error: "Question " + (i + 1) + ": " + r.error }; qs.push(r.out); }
+  for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i], b.status !== "published"); if (r.error) return { error: "Question " + (i + 1) + ": " + r.error }; qs.push(r.out); }
   const status = b.status === "published" ? "published" : "draft";
-  if (status === "published" && !qs.length) return { error: "Add at least one test question before publishing." };
-  const L = { id: old ? old.id : clip(b.id, 40) || "l" + rid(5), subject, title, emoji: clip(b.emoji, 4) || "📘", order: Math.max(0, Math.min(9999, Math.floor(Number(b.order)) || 0)), status, pages, questions: qs, source: clip(b.source, 200), updatedAt: Date.now() };
+  if (status === "published" && kind === "test" && !qs.length) return { error: "Add at least one question before publishing a test." };
+  const L = { id: old ? old.id : clip(b.id, 40) || "l" + rid(5), subject, level, topic: clip(b.topic, 80), kind, title, emoji: clip(b.emoji, 4) || "📘", order: Math.max(0, Math.min(9999, Math.floor(Number(b.order)) || 0)), status, pages, questions: qs, source: clip(b.source, 200), updatedAt: Date.now() };
   if (JSON.stringify(L).length > 400000) return { error: "This lesson is too large." };
   return { out: L };
 }
-const lmeta = (l) => ({ id: l.id, subject: l.subject, title: l.title, emoji: l.emoji, order: l.order, status: l.status, np: l.pages.length, nq: l.questions.length, updatedAt: l.updatedAt });
+const lmeta = (l) => ({ id: l.id, subject: l.subject, level: l.level || "b7", topic: l.topic || "", kind: l.kind || "learn", title: l.title, emoji: l.emoji, order: l.order, status: l.status, np: l.pages.length, nq: l.questions.length, updatedAt: l.updatedAt });
 
 export function createHandler(getS, env = {}) {
   return async function handler(req) {
@@ -167,7 +170,7 @@ export function createHandler(getS, env = {}) {
     // ---------- public actions
     if (action === "register") {
       const username = normUser(body.username), password = String(body.password || ""), phone = clip(body.phone, 20);
-      const fullName = clip(body.fullName, 60);
+      const fullName = clip(body.fullName, 60), level = LEVELS.includes(body.level) ? body.level : "b7";
       if (fullName.length < 2) return fail("Enter the learner's full name.");
       if (!validUser(username)) return fail("Username must be 3-30 characters: letters, numbers, dot or underscore.");
       const pp = pwProblem(password, username, phone); if (pp) return fail(pp);
@@ -177,7 +180,7 @@ export function createHandler(getS, env = {}) {
       if (!validPhone(phone)) return fail("Enter a valid phone number (9 to 15 digits).");
       if (username === adminName) return fail("That username is not available.");
       if (await get("user:" + username)) return fail("That username is already taken.");
-      const user = { username, phone, phoneKey: phoneKey(phone), pass: hashPw(password), pwEnc: encPw(password, env), pe: 0, status: "active", createdAt: Date.now(), lastLogin: Date.now(), theme: "sunny", fullName };
+      const user = { username, phone, phoneKey: phoneKey(phone), pass: hashPw(password), pwEnc: encPw(password, env), pe: 0, status: "active", createdAt: Date.now(), lastLogin: Date.now(), theme: "sunny", fullName, level };
       user.status = "pending";
       await set("user:" + username, user);
       return json({ ok: true, pending: true });
@@ -235,7 +238,7 @@ export function createHandler(getS, env = {}) {
       const t2 = me.role === "admin" ? await get("admin2fa") : null;
       let asgUnseen = 0;
       if (me.role === "user") { const { blobs } = await store.list({ prefix: "sub:" + me.username + ":" }); for (const b of blobs) { const m = await get(b.key); if (m && m.status === "marked" && !m.seen) asgUnseen++; } }
-      return json({ ok: true, username: me.username, role: me.role, fullName: me.user?.fullName || "", theme: me.user?.theme || "sunny", progress, pe: me.user?.pe || 0, pending, asgUnseen, twoStep: !!(t2 && t2.enabled), vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
+      return json({ ok: true, username: me.username, role: me.role, fullName: me.user?.fullName || "", level: me.user?.level || "b7", theme: me.user?.theme || "sunny", progress, pe: me.user?.pe || 0, pending, asgUnseen, twoStep: !!(t2 && t2.enabled), vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
     }
 
     if (action === "saveState" && me.role === "user") {
@@ -259,10 +262,14 @@ export function createHandler(getS, env = {}) {
       if (!l || (me.role !== "admin" && l.status !== "published")) return fail("Lesson not found.", 404);
       return json({ ok: true, lesson: l });
     }
+    if (action === "setLevel" && me.role === "user") {
+      if (!LEVELS.includes(body.level)) return fail("Choose Basic 7, 8 or 9."); me.user.level = body.level; await set("user:" + me.username, me.user); return json({ ok: true });
+    }
+    if (action === "imgGet") { const m = await get("img:" + clip(body.id, 40)); return m ? json({ ok: true, d: m.d }) : fail("Picture not found.", 404); }
     if (action === "subjectQs") {
       const sub = SUBJECTS.includes(body.subject) ? body.subject : ""; if (!sub) return fail("Choose a subject.");
       const out = [];
-      for (const m of (await lidx()).filter((x) => x.subject === sub && x.status === "published")) { const l = await get("lesson:" + m.id); if (l) l.questions.forEach((q, i) => { if (q.t !== "st") out.push({ ...q, lid: l.id, qi: i }); }); }
+      for (const m of (await lidx()).filter((x) => x.subject === sub && x.status === "published" && (!LEVELS.includes(body.level) || x.level === body.level))) { const l = await get("lesson:" + m.id); if (l) l.questions.forEach((q, i) => { if (q.t !== "st") out.push({ ...q, lid: l.id, qi: i }); }); }
       return json({ ok: true, questions: out });
     }
 
@@ -387,7 +394,7 @@ export function createHandler(getS, env = {}) {
         const u = await get(b.key); if (!u) continue;
         const p = (await get("progress:" + u.username)) || {};
         const dp = decPw(u.pwEnc, env); if (dp.legacy && vaultKey(env)) { u.pwEnc = encPw(dp.pw, env); await set(b.key, u); }
-        users.push({ username: u.username, fullName: u.fullName || "", phone: u.phone, pw: dp.pw, resetReq: u.resetReq || null, status: u.status, createdAt: u.createdAt, lastLogin: u.lastLogin, theme: u.theme, stars: p.stars || 0, lessonsDone: Object.keys(p.lessons || {}).length, streak: (p.streak && p.streak.n) || 0 });
+        users.push({ username: u.username, fullName: u.fullName || "", phone: u.phone, pw: dp.pw, resetReq: u.resetReq || null, status: u.status, createdAt: u.createdAt, lastLogin: u.lastLogin, theme: u.theme, level: u.level || "b7", stars: p.stars || 0, lessonsDone: Object.keys(p.lessons || {}).length, streak: (p.streak && p.streak.n) || 0 });
       }
       users.sort((a, b) => b.createdAt - a.createdAt);
       return json({ ok: true, users, vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
@@ -434,9 +441,17 @@ export function createHandler(getS, env = {}) {
       const asg = []; { const { blobs } = await store.list({ prefix: "asg:" }); for (const b of blobs) { const a = await get(b.key); if (a) asg.push(a); } }
       const subs = []; { const { blobs } = await store.list({ prefix: "sub:" }); for (const b of blobs) { const m = await get(b.key); if (m) subs.push(m); } }
       const lessons = []; { const { blobs } = await store.list({ prefix: "lesson:" }); for (const b of blobs) { const l = await get(b.key); if (l) lessons.push(l); } }
-      return json({ ok: true, exportedAt: Date.now(), lessons, assignments: asg, submissions: subs, users, settings: (await get("settings")) || DEFAULT_SETTINGS });
+      const images = []; { const { blobs } = await store.list({ prefix: "img:" }); for (const b of blobs) { const m = await get(b.key); if (m) images.push({ id: b.key.slice(4), d: m.d }); } }
+      return json({ ok: true, exportedAt: Date.now(), lessons, images, assignments: asg, submissions: subs, users, settings: (await get("settings")) || DEFAULT_SETTINGS });
     }
+    if (action === "imgSave") {
+      const d = String(body.d || ""); if (!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(d)) return fail("Only JPEG, PNG or WebP pictures.");
+      if (d.length > 900000) return fail("That picture is too large. Use a smaller one.");
+      const id = clip(body.id, 40).replace(/[^a-z0-9]/gi, "") || "i" + rid(5); await set("img:" + id, { d }); return json({ ok: true, id });
+    }
+    if (action === "imgDelete") { await store.delete("img:" + clip(body.id, 40)); return json({ ok: true }); }
     if (action === "importLessons") {
+      for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }
       const arr = Array.isArray(body.lessons) ? body.lessons : []; let n = 0;
       for (const x of arr.slice(0, 300)) { const r = cleanLesson({ ...x, id: x.id }, null); if (r.out) { if (x.id) r.out.id = clip(x.id, 40) || r.out.id; await set("lesson:" + r.out.id, r.out); n++; } }
       await reindex(); return json({ ok: true, imported: n });

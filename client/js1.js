@@ -1,11 +1,12 @@
-const APP_VERSION='v1.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.1',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
-const SUBJ=[{id:'sci',title:'Integrated Science',mas:'🔬',c1:'#0f9d58',c2:'#34d3a0',desc:'Explore how the world works!'},{id:'math',title:'Mathematics',mas:'🧮',c1:'#e8477a',c2:'#ff9a5a',desc:'Numbers, shapes and puzzles!'},{id:'ga',title:'Ghanaian Language (Ga)',mas:'🥁',c1:'#6d3fe0',c2:'#b07cff',desc:'Speak, read and write Ga!'}];
+const SUBJ=[{id:'sci',title:'Integrated Science',mas:'🔬',c1:'#0f9d58',c2:'#34d3a0',desc:'Explore how the world works!'},{id:'math',title:'Mathematics',mas:'🧮',c1:'#e8477a',c2:'#ff9a5a',desc:'Numbers, shapes and puzzles!'},{id:'ga',title:'Ghanaian Language (Ga)',mas:'🥁',c1:'#6d3fe0',c2:'#b07cff',desc:'Speak, read and write Ga!'},{id:'comp',title:'Computing',mas:'💻',c1:'#0ea5e9',c2:'#6366f1',desc:'Computers, coding and the digital world!'}];
+const LVL=[['b7','Basic 7'],['b8','Basic 8'],['b9','Basic 9']],lvlName=id=>(LVL.find(l=>l[0]===id)||LVL[0])[1];
 const subj=id=>SUBJ.find(s=>s.id===id)||SUBJ[0];
 const $=s=>document.querySelector(s),app=document.getElementById('app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{v==null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
-const S={token:lsGet('bpz_t')||'',role:'',username:'',fullName:'',theme:lsGet('bpz_th')||'sunny',progress:{},pe:0,settings:{mockq:30,mockt:45},asgUnseen:0,pending:0,lessons:[],sound:lsGet('bpz_snd')!=='0',listen:true};
+const S={level:lsGet('bpz_lv')||'b7',token:lsGet('bpz_t')||'',role:'',username:'',fullName:'',theme:lsGet('bpz_th')||'sunny',progress:{},pe:0,settings:{mockq:30,mockt:45},asgUnseen:0,pending:0,lessons:[],sound:lsGet('bpz_snd')!=='0',listen:true};
 function setTheme(t){S.theme=t;document.documentElement.dataset.theme=t;lsSet('bpz_th',t)}setTheme(S.theme);
 async function api(action,body={}){
   try{const r=await fetch('/api',{method:'POST',headers:{'content-type':'application/json',...(S.token?{authorization:'Bearer '+S.token}:{})},body:JSON.stringify({action,...body})});
@@ -16,20 +17,27 @@ let tt;function toast(m,ms=2600){let t=$('.toast');if(t)t.remove();t=document.cr
 function loadScript(list,test){return new Promise((res,rej)=>{if(test&&test())return res();let i=0;const go=()=>{if(i>=list.length)return rej(new Error('Could not load a helper file.'));const s=document.createElement('script');s.src=list[i++];s.onload=()=>res();s.onerror=go;document.head.appendChild(s)};go()})}
 /* ---- rich text: **bold**, ==highlight==, ^{sup}, _{sub}, [[a/b]], sqrt{x}, "## heading", "- bullet", "1. step", "> tip" ---- */
 function rtInline(s){let t=esc(s);
+  t=t.replace(/\[\[pic:([^\]]*)\]\]/g,(m,d)=>S.role==='admin'?`<span class="picslot">🖼 Picture goes here: ${d.trim()}</span>`:'');
+  t=t.replace(/\[\[img:([a-z0-9]+)(?:\|([^\]]*))?\]\]/gi,(m,id,c)=>`<span class="figw"><img class="pic" data-pic="${id}" alt="${(c||'Picture').replace(/"/g,'')}">${c?`<span class="cap">${c}</span>`:''}</span>`);
   t=t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/==(.+?)==/g,'<mark class="hl">$1</mark>');
   t=t.replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/_\{([^{}]*)\}/g,'<sub>$1</sub>');
   t=t.replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,'<span class="frac"><span>$1</span><span>$2</span></span>');
   return t.replace(/sqrt\{([^{}]*)\}/g,'√<span class="rad">$1</span>')}
-function rich(s){const out=[];let list=null;const close=()=>{if(list){out.push('</'+list+'>');list=null}};
-  String(s||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trimEnd();let m;
+function rich(s){const out=[];let list=null,tbl=null;const flushT=()=>{if(tbl&&tbl.length){out.push('<div class="tw"><table><thead><tr>'+tbl[0].map(c=>`<th>${rtInline(c)}</th>`).join('')+'</tr></thead><tbody>'+tbl.slice(1).map(r=>'<tr>'+r.map(c=>`<td>${rtInline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>')}tbl=null};const close=()=>{if(list){out.push('</'+list+'>');list=null}if(tbl&&!/^\|/.test(cur))flushT()};let cur='';
+  String(s||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trimEnd();let m;cur=l;
     if(!l.trim()){close();return}
     if((m=l.match(/^(#{1,3})\s+(.*)$/))){close();const n=m[1].length+1;out.push(`<h${n} class="rh">${rtInline(m[2])}</h${n}>`);return}
     if((m=l.match(/^[-•*]\s+(.*)$/))){if(list!=='ul'){close();out.push('<ul>');list='ul'}out.push(`<li>${rtInline(m[1])}</li>`);return}
     if((m=l.match(/^(\d{1,2})[.)]\s+(.*)$/))){if(list!=='ol'){close();out.push(`<ol start="${m[1]}">`);list='ol'}out.push(`<li>${rtInline(m[2])}</li>`);return}
-    if((m=l.match(/^>\s*(.*)$/))){close();out.push(`<div class="callout">💡 ${rtInline(m[1])}</div>`);return}
+    if((m=l.match(/^>\s*(.*)$/))){close();const em=/^\p{Extended_Pictographic}/u.test(m[1]);out.push(`<div class="callout${/^🧪/u.test(m[1])?' try':/^🎯/u.test(m[1])?' goal':/^🤔|^✨/u.test(m[1])?' know':''}">${em?'':'💡 '}${rtInline(m[1])}</div>`);return}
+    if(/^\|.*\|\s*$/.test(l)){close();tbl=tbl||[];if(!/^\|[\s:|-]+\|$/.test(l))tbl.push(l.replace(/^\||\|\s*$/g,'').split('|').map(x=>x.trim()));return}
     close();out.push(`<p>${rtInline(l)}</p>`)});
-  close();return out.join('')}
-const plain=s=>String(s||'').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
+  cur='';close();flushT();return out.join('')}
+const plain=s=>String(s||'').replace(/\[\[(?:img|pic):[^\]]*\]\]/gi,' ').replace(/^\|.*\|$/gm,' ').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
+/* ---- pictures are stored separately and loaded when they appear ---- */
+const PIC=new Map();
+async function loadPic(img){const id=img.dataset.pic;if(!id||img.dataset.done)return;img.dataset.done='1';if(!PIC.has(id))PIC.set(id,api('imgGet',{id}).then(r=>r.ok?r.d:''));const d=await PIC.get(id);if(d)img.src=d;else img.closest('.figw')&&img.closest('.figw').classList.add('hide')}
+new MutationObserver(()=>app.querySelectorAll('img[data-pic]:not([data-done])').forEach(loadPic)).observe(app,{childList:true,subtree:true});
 /* ---- progress, stars, streak, levels ---- */
 const pad2=n=>String(n).padStart(2,'0'),dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())};
 const yKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d)};
@@ -62,7 +70,7 @@ function showAuth(note){
     <div class="panel"><div class="tabs" role="tablist"><button class="${tab==='in'?'on':''}" data-t="in">Sign in</button><button class="${tab==='up'?'on':''}" data-t="up">New learner</button></div>
     ${note?`<div class="msg err">${esc(note)}</div>`:''}
     ${tab==='in'?`<form id="f"><label class="f">Username<input id="u" autocomplete="username" autocapitalize="none" required></label><label class="f">Password<input id="p" type="password" autocomplete="current-password" required></label>${need?'<label class="f">6-digit code (administrator)<input id="c" inputmode="numeric" autocomplete="one-time-code"></label>':''}<div class="actions"><button class="btn primary big" style="width:100%">Let's go! 🚀</button></div><p class="hint" style="text-align:center"><button type="button" class="link" id="fg">Forgot my password</button></p></form>`
-    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
+    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Class<select id="lv">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
     <div id="m">${msg?`<div class="msg ${cls}">${esc(msg)}</div>`:''}</div></div><p class="hint" style="text-align:center">${APP_NAME} ${APP_VERSION}</p></div></div>`;
     app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;note='';need=false;paint()});
     const fg=$('#fg');if(fg)fg.onclick=async()=>{const u=$('#u').value.trim();if(!u)return paint('Type your username first, then press this again.','err');await api('requestReset',{username:u});paint('Your teacher has been told. They will give you a new password.','okm')};
@@ -71,14 +79,14 @@ function showAuth(note){
         if(r.needCode){need=true;return paint(r.error,'err')}
         if(!r.ok){b.disabled=false;return paint(r.error,'err')}
         S.token=r.token;lsSet('bpz_t',r.token);return boot()}
-      const r=await api('register',{fullName:$('#n').value,username:$('#u').value,phone:$('#ph').value,password:$('#p').value});
+      const r=await api('register',{fullName:$('#n').value,username:$('#u').value,phone:$('#ph').value,level:$('#lv').value,password:$('#p').value});
       if(!r.ok){b.disabled=false;return paint(r.error,'err')}
       tab='in';paint('Done! Your teacher will approve your account soon. Then you can sign in.','okm')}};
   paint()}
 async function boot(){
   if(!S.token)return showAuth();
   const r=await api('me');if(!r.ok){if(!S.token)return;return showAuth(r.error)}
-  Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
+  if(r.level){S.level=r.level;lsSet('bpz_lv',r.level)}Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
   if(r.role==='user')setTheme(r.theme||'sunny');else setTheme('sunny');
   if(S.role==='admin')return adminHome();
   touchStreak();queueSave();home()}
@@ -89,33 +97,50 @@ function wireNav(){app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{s
 function firstName(){return (S.fullName||S.username).split(/\s+/)[0]}
 async function loadLessons(){const r=await api('lessonList');S.lessons=r.ok?r.lessons:[];return r.ok}
 /* ---- home ---- */
+const EM=['🌟','🔎','💡','🧪','🚀','🎯','🌈','🧩'];
+const lvlOf=l=>l.level||'b7';
+const mine=()=>S.lessons.filter(l=>lvlOf(l)===S.level);
+const doneL=l=>!!((P().lessons||{})[l.id]&&P().lessons[l.id].read);
+function levelPills(){return `<div class="pills" role="tablist" aria-label="Class">${LVL.map(l=>`<button class="pill ${S.level===l[0]?'on':''}" data-lv="${l[0]}">${l[1]}</button>`).join('')}</div>`}
+function wireLevel(after){app.querySelectorAll('[data-lv]').forEach(b=>b.onclick=async()=>{S.level=b.dataset.lv;lsSet('bpz_lv',S.level);api('setLevel',{level:S.level});after()})}
 async function home(){
   window.scrollTo(0,0);stopSpeak();document.body.style.paddingBottom='70px';
   const [,mr]=await Promise.all([loadLessons(),api('me')]);if(mr&&mr.ok)S.asgUnseen=mr.asgUnseen||0;
   const n=starsTotal(),lv=levelOf(n),sk=streakNow(),mis=(P().mistakes||[]).length;
   app.innerHTML=`<header class="hero"><div class="wrap"><div class="herorow"><div class="mascot" aria-hidden="true">🦉</div><div style="flex:1"><h1>Hi ${esc(firstName())}! 👋</h1><p class="lede">${sk>1?`${sk} days in a row! Keep your streak going.`:'Pick a subject and start your adventure.'}</p></div></div>
   <div class="stats"><div class="stat"><b>⭐ ${n}</b><small>stars</small></div><div class="stat"><b>🔥 ${sk}</b><small>day streak</small></div><div class="stat lvl"><b>${lv.L[2]} ${lv.L[1]}</b><small>${lv.nx?`${lv.nx[0]-n} stars to ${lv.nx[1]}`:'Top level!'}</small><span class="sprog"><i style="width:${lv.pct}%"></i></span></div></div></div></header>
-  <main class="wrap"><div class="subjgrid">${SUBJ.map(s=>{const ls=S.lessons.filter(l=>l.subject===s.id),done=ls.filter(l=>(P().lessons||{})[l.id]&&P().lessons[l.id].read).length;return `<button class="subj" data-s="${s.id}" style="--c1:${s.c1};--c2:${s.c2}"><span class="mas" aria-hidden="true">${s.mas}</span><span class="sbody"><b>${s.title}</b><small>${s.desc}</small><span class="chips"><span class="cchip">${ls.length?`${done}/${ls.length} lessons`:'Coming soon'}</span></span></span><span aria-hidden="true" style="font-size:24px">▶</span></button>`}).join('')}</div>
+  <main class="wrap">${levelPills()}<div class="subjgrid">${SUBJ.map(s=>{const ls=mine().filter(l=>l.subject===s.id&&l.kind!=='test'),done=ls.filter(doneL).length;return `<button class="subj" data-s="${s.id}" style="--c1:${s.c1};--c2:${s.c2}"><span class="mas" aria-hidden="true">${s.mas}</span><span class="sbody"><b>${s.title}</b><small>${s.desc}</small><span class="chips"><span class="cchip">${ls.length?`${done}/${ls.length} mini-lessons`:'Coming soon'}</span></span></span><span aria-hidden="true" style="font-size:24px">▶</span></button>`}).join('')}</div>
   <div class="tiles"><button class="tile" id="tm"><span class="tic">🛠️</span><b>Fix my mistakes</b><small>${mis?mis+' to practise':'Nothing to fix. Great!'}</small></button><button class="tile" data-go="asg"><span class="tic">📬</span><b>Homework</b><small>${S.asgUnseen?S.asgUnseen+' new mark'+(S.asgUnseen>1?'s':''):'Hand in your work'}</small></button></div></main>${nav('home')}`;
-  wireNav();app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>subject(b.dataset.s));$('#tm').onclick=()=>mis?retryMistakes():toast('No mistakes to fix yet. 🎉')}
+  wireNav();wireLevel(home);app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>subject(b.dataset.s));$('#tm').onclick=()=>mis?retryMistakes():toast('No mistakes to fix yet. 🎉')}
+function topicsOf(sid){const ls=mine().filter(l=>l.subject===sid),map=new Map();ls.forEach(l=>{const t=l.topic||'More lessons';if(!map.has(t))map.set(t,[]);map.get(t).push(l)});return [...map.entries()].map(([t,items])=>({t,learn:items.filter(x=>x.kind!=='test'),test:items.filter(x=>x.kind==='test')}))}
+const OPEN_T=new Set();
 async function subject(id){
   window.scrollTo(0,0);stopSpeak();const s=subj(id);await loadLessons();
-  const ls=S.lessons.filter(l=>l.subject===id);
-  app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${ls.length?`${ls.length} lesson${ls.length>1?'s':''} to explore`:s.desc}</p></div></div></div></header>
-  <main class="wrap">${ls.length?`<div class="lessons">${ls.map((l,i)=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{};const st=(r.read?2:0)+(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="lesson ${r.read?'read':''}" data-l="${l.id}"><span class="lno">${r.read?'✓':esc(l.emoji||i+1)}</span><span><b>${esc(l.title)}</b><small>${l.np} page${l.np>1?'s':''} · ${l.nq} question${l.nq===1?'':'s'}${st?` · ⭐ ${st}`:''}</small></span></button>`}).join('')}</div>
-  <div class="tiles" style="margin-bottom:30px"><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`
-  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} ready. Come back soon.</p></div>`}</main>${nav('home')}`;
-  wireNav();$('#bk').onclick=home;app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id)}
-/* ---- lesson reader ---- */
+  const tp=topicsOf(id),total=tp.reduce((a,t)=>a+t.learn.length,0);
+  if(!OPEN_T.size){const first=tp.find(t=>t.learn.some(l=>!doneL(l)))||tp[0];if(first)OPEN_T.add(first.t)}
+  app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${lvlName(S.level)} · ${total?`${tp.length} topic${tp.length>1?'s':''}, ${total} mini-lessons`:s.desc}</p></div></div></div></header>
+  <main class="wrap">${levelPills()}${tp.length?tp.map((t,ti)=>{const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0;return `<details class="topic" data-t="${esc(t.t)}" ${OPEN_T.has(t.t)?'open':''}><summary><span class="tdot" style="background:linear-gradient(130deg,${s.c1},${s.c2})">${dn===t.learn.length&&t.learn.length?'✓':ti+1}</span><span class="ttxt"><b>${esc(t.t)}</b><small>${dn}/${t.learn.length} done${t.test.length?' · topic test':''}</small><span class="tbar"><i style="width:${pct}%"></i></span></span></summary>
+  <div class="path">${t.learn.map((l,i)=>{const r=(P().lessons||{})[l.id]||{};return `<button class="step ${r.read?'read':''}" data-l="${l.id}"><span class="sno">${r.read?'✓':esc(l.emoji||EM[i%EM.length])}</span><span class="stx"><b>${esc(l.title)}</b><small>${l.np} card${l.np>1?'s':''} · about ${Math.max(1,l.np)} min${l.nq?` · ${l.nq} question${l.nq===1?'':'s'}`:''}</small></span></button>`}).join('')}
+  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`
+  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div>`}</main>${nav('home')}`;
+  wireNav();wireLevel(()=>{OPEN_T.clear();subject(id)});$('#bk').onclick=home;
+  app.querySelectorAll('details.topic').forEach(d=>d.ontoggle=()=>{d.open?OPEN_T.add(d.dataset.t):OPEN_T.delete(d.dataset.t)});
+  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id)}
+/* ---- lesson reader: short, colourful cards ---- */
+const CARD=['#6d3fe0','#e8477a','#0a9b7a','#e07a00','#0b6fc2','#b01e95'];
 async function openLesson(id,pg){
   const r=await api('lessonGet',{id});if(!r.ok){toast(r.error);return}
-  const L=r.lesson,s=subj(L.subject);let i=pg||0;const pages=L.pages;window.scrollTo(0,0);
-  const paint=()=>{const p=pages[i],last=i===pages.length-1;
-    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← ${esc(s.title)}</button>${canSpeak()?'<button class="btn sm" id="ls">🔊 Listen</button>':''}</div><h1>${esc(L.emoji)} ${esc(L.title)}</h1><p class="lede">Page ${i+1} of ${pages.length}</p></div></header>
-    <main class="wrap"><article class="reader" id="rd" aria-live="polite">${p.title?`<h2>${esc(p.title)}</h2>`:''}<div class="rich">${rich(p.body)}</div></article><div class="dots" aria-hidden="true">${pages.map((_,k)=>`<i class="${k===i?'on':''}"></i>`).join('')}</div>
-    <div class="actions" style="justify-content:space-between"><button class="btn" id="pv" ${i?'':'disabled'}>◀ Back</button>${last?'<button class="btn primary big" id="go">I am ready for the test! 🚀</button>':'<button class="btn primary" id="nx">Next ▶</button>'}</div></main>`;
+  const L=r.lesson,s=subj(L.subject);window.scrollTo(0,0);
+  if(L.kind==='test'||!L.pages.length)return lessonTest(L);
+  let i=pg||0;const pages=L.pages,sib=S.lessons.filter(x=>x.subject===L.subject&&lvlOf(x)===lvlOf(L)&&(x.topic||'')===(L.topic||'')),at=sib.findIndex(x=>x.id===L.id),nextL=sib.slice(at+1).find(x=>x.kind!=='test'),testL=sib.find(x=>x.kind==='test');
+  const paint=()=>{const p=pages[i],last=i===pages.length-1,col=CARD[(at+i)%CARD.length];
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← ${esc(L.topic||s.title)}</button>${canSpeak()?'<button class="btn sm" id="ls">🔊 Listen</button>':''}</div><h1>${esc(L.emoji)} ${esc(L.title)}</h1><div class="lpb" aria-label="Page ${i+1} of ${pages.length}">${pages.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('')}</div></div></header>
+    <main class="wrap"><article class="reader card" id="rd" style="--cc:${col}" aria-live="polite">${p.title?`<h2>${esc(p.title)}</h2>`:''}<div class="rich">${rich(p.body)}</div></article>
+    <div class="actions" style="justify-content:space-between"><button class="btn" id="pv" ${i?'':'disabled'}>◀ Back</button>${last?'':'<button class="btn primary big" id="nx">Next ▶</button>'}</div>
+    ${last?`<div class="res" id="fin"><div class="stars">⭐⭐</div><h3>Mini-lesson done!</h3><div class="actions" style="justify-content:center">${L.questions.length?'<button class="btn primary big" id="go">Quick check 🚀</button>':''}${nextL?`<button class="btn ${L.questions.length?'':'primary big'}" id="nl">Next mini-lesson ▶</button>`:testL?'<button class="btn primary big" id="tt">Take the topic test 🏆</button>':''}<button class="btn" id="bk2">Back to the path</button></div></div>`:''}</main>`;
     $('#bk').onclick=()=>{stopSpeak();subject(L.subject)};const ls=$('#ls');if(ls)ls.onclick=()=>speak((p.title?p.title+'. ':'')+p.body);
     $('#pv').onclick=()=>{stopSpeak();i--;paint();window.scrollTo(0,0)};const nx=$('#nx');if(nx)nx.onclick=()=>{stopSpeak();i++;paint();window.scrollTo(0,0)};
-    if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('ok');confetti();toast('⭐⭐ +2 stars for reading!')}$('#go').onclick=()=>{stopSpeak();lessonTest(L)}}
+    if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('ok');confetti();toast('⭐⭐ +2 stars for reading!')}
+      const g=$('#go');if(g)g.onclick=()=>{stopSpeak();lessonTest(L)};const nl=$('#nl');if(nl)nl.onclick=()=>{stopSpeak();openLesson(nextL.id)};const tt=$('#tt');if(tt)tt.onclick=()=>{stopSpeak();openLesson(testL.id)};$('#bk2').onclick=()=>{stopSpeak();subject(L.subject)}}
     let x0=null;const rd=$('#rd');rd.ontouchstart=e=>{x0=e.touches[0].clientX};rd.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<70)return;if(dx<0&&i<pages.length-1){stopSpeak();i++;paint()}else if(dx>0&&i>0){stopSpeak();i--;paint()}}};
   paint()}

@@ -4,6 +4,10 @@ const fibOk=(q,v)=>{const n=normA(v);if(!n)return false;return String(q.a).split
 const fibShow=q=>String(q.a).split('|')[0].trim();
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const fmtT=s=>Math.floor(s/60)+':'+pad2(s%60);
+const stem=w=>{w=w.replace(/ies$/,'y');return w.length>4?w.replace(/(ing|ed|es|s|ly)$/,''):w};
+function near(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>1||a.length<6)return false;let i=0,j=0,e=0;while(i<a.length&&j<b.length){if(a[i]===b[j]){i++;j++;continue}if(++e>1)return false;if(a.length>b.length)i++;else if(a.length<b.length)j++;else{i++;j++}}return e+(a.length-i)+(b.length-j)<=1}
+function hasKey(txt,key){const t=normA(txt),k=normA(key);if(!k)return false;if(k.includes(' ')||/\d/.test(k))return(' '+t+' ').includes(' '+k+' ')||t.replace(/ /g,'').includes(k.replace(/ /g,''));const ks=stem(k);return t.split(' ').some(w=>w===k||stem(w)===ks||near(stem(w),ks))}
+const ideaHit=(txt,idea)=>(idea.k||[]).some(k=>hasKey(txt,k));
 const stP=x=>x.parts||[];const stTot=x=>stP(x).reduce((a,p)=>a+p.m,0);
 /* ---- the question runner: one question per screen ---- */
 function runQuiz(o){
@@ -34,16 +38,22 @@ function runQuiz(o){
     else{ /* structured, self-marked */
       const P_=stP(q),tot=stTot(q),sc=P_.map(()=>0),shown=P_.map(()=>false);
       app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${rtInline(q.q)}</div></section>
-      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${rtInline(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="Write your answer here, or on paper, then show the model answer."></textarea><div class="actions"><button class="btn primary" data-show="${k}">Show the model answer</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
+      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${rtInline(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="${p.ideas&&p.ideas.length?'Type your answer here in your own words.':'Write your answer here, or on paper, then show the model answer.'}"></textarea><div class="actions"><button class="btn primary" data-show="${k}">${p.ideas&&p.ideas.length?'Check my answer ✓':'Show the model answer'}</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
       <div class="actions"><button class="btn primary big" id="fin">${nxl}</button></div></main>`;wireExit();
       app.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=+b.dataset.show,p=P_[k],card=b.closest('.qcard'),ta=card.querySelector('textarea'),slot=card.querySelector('.slot');
-        if(!ta.value.trim()&&!confirm('You have not written anything yet. Show the answer anyway?'))return;shown[k]=true;ta.disabled=true;b.classList.add('hide');
         const ans=p.a?`<div class="rich">${rich(p.a)}</div>`:'';
+        if(p.ideas&&p.ideas.length){
+          if(ta.value.trim().length<3){toast('Type your answer first. Try your best!');return}
+          shown[k]=true;ta.disabled=true;b.classList.add('hide');const hit=p.ideas.map(x=>ideaHit(ta.value,x)),claim=p.ideas.map(()=>false);
+          const calc=()=>{sc[k]=Math.min(p.m,hit.filter(Boolean).length+claim.filter(Boolean).length);slot.querySelector('.got').textContent=sc[k]+' / '+p.m};
+          slot.innerHTML=`<div class="mark"><b>Marks: <span class="got"></span></b><div class="meta">Marks are given for the ideas and key words in your answer, not for exact wording.</div>${p.ideas.map((x,j)=>`<div class="idea ${hit[j]?'ok':'no'}" data-j="${j}"><span class="ic">${hit[j]?'✅':'⬜'}</span><span>${rtInline(x.t)}${hit[j]?'':' <button class="link" data-claim="'+j+'">I said this in my own words</button>'}</span></div>`).join('')}</div>${ans?`<div class="model"><b>Model answer</b>${ans}</div>`:''}`;
+          slot.querySelectorAll('[data-claim]').forEach(c=>c.onclick=()=>{const j=+c.dataset.claim;claim[j]=!claim[j];const row=slot.querySelector('.idea[data-j="'+j+'"]');row.classList.toggle('ok',claim[j]);row.classList.toggle('no',!claim[j]);row.querySelector('.ic').textContent=claim[j]?'✅':'⬜';c.textContent=claim[j]?'Undo':'I said this in my own words';calc()});calc();if(sc[k]>=p.m)beep('ok');return}
+        if(!ta.value.trim()&&!confirm('You have not written anything yet. Show the answer anyway?'))return;shown[k]=true;ta.disabled=true;b.classList.add('hide');
         if(p.pts&&p.pts.length){slot.innerHTML=`<div class="model"><b>Model answer</b>${ans}</div><div class="mark"><b>Tick every point you wrote:</b>${p.pts.map(t=>`<label class="pt"><input type="checkbox" data-pt="${k}"> <span>${rtInline(t)}</span></label>`).join('')}<div class="meta">Each point is 1 mark. Be honest!</div></div>`;
           slot.querySelectorAll('[data-pt]').forEach(c=>c.onchange=()=>{sc[k]=Math.min(p.m,slot.querySelectorAll('[data-pt]:checked').length)})}
         else{slot.innerHTML=`<div class="model"><b>Model answer</b>${ans}</div><div class="mark"><b>How many marks did you earn? (out of ${p.m})</b><div class="chips" role="radiogroup">${Array.from({length:p.m+1},(_,v)=>`<button class="cchip pick" role="radio" aria-checked="false" data-v="${v}">${v}</button>`).join('')}</div></div>`;
           slot.querySelectorAll('[data-v]').forEach(c=>c.onclick=()=>{sc[k]=+c.dataset.v;slot.querySelectorAll('[data-v]').forEach(z=>{z.classList.toggle('ok',z===c);z.setAttribute('aria-checked',z===c)})})}});
-      $('#fin').onclick=()=>{if(!shown.every(Boolean)){toast('Show the model answer for every part first.');return}next({it,s:sc.reduce((a,b)=>a+b,0),t:tot})}}
+      $('#fin').onclick=()=>{if(!shown.every(Boolean)){toast('Finish every part first.');return}next({it,s:sc.reduce((a,b)=>a+b,0),t:tot})}}
   }
   show()}
 /* ---- mistakes notebook ---- */
@@ -56,19 +66,19 @@ function lessonTest(L){
   const order={mcq:0,fib:1,st:2},items=L.questions.map(q=>({k:q.t,q,lid:L.id})).sort((a,b)=>order[a.k]-order[b.k]);
   if(!items.length){toast('This lesson has no questions yet.');return subject(L.subject)}
   const before=starsTotal();
-  runQuiz({items,instant:true,onExit:()=>openLesson(L.id,L.pages.length-1),onDone:res=>{
+  runQuiz({items,instant:true,onExit:()=>L.pages.length?openLesson(L.id,L.pages.length-1):subject(L.subject),onDone:res=>{
     const cnt=k=>({c:res.filter(r=>r.it.k===k&&r.ok).length,t:res.filter(r=>r.it.k===k).length}),m=cnt('mcq'),f=cnt('fib'),st=res.filter(r=>r.it.k==='st'),ss=st.reduce((a,r)=>a+r.s,0),stt=st.reduce((a,r)=>a+r.t,0);
     const rc=rec(L.id),b=rc.b=rc.b||{};b.mcq=Math.max(b.mcq||0,m.c);b.fib=Math.max(b.fib||0,f.c);b.st=Math.max(b.st||0,ss);rc.read=true;rc.last=Date.now();
     addMistakes(res);clearMistakes(res);touchStreak();queueSave();
-    const got=m.c+f.c+ss,all=m.t+f.t+stt,pct=all?Math.round(100*got/all):0,gain=starsTotal()-before,idx=S.lessons.filter(l=>l.subject===L.subject),at=idx.findIndex(l=>l.id===L.id),nx=idx[at+1];
+    const got=m.c+f.c+ss,all=m.t+f.t+stt,pct=all?Math.round(100*got/all):0,gain=starsTotal()-before,idx=S.lessons.filter(l=>l.subject===L.subject&&lvlOf(l)===lvlOf(L)&&(l.topic||'')===(L.topic||'')),at=idx.findIndex(l=>l.id===L.id),nx=idx.slice(at+1).find(l=>l.kind!=='test');
     window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
     app.innerHTML=`<header class="hero"><div class="wrap"><h1>${esc(L.emoji)} ${esc(L.title)}</h1><p class="lede">Test finished</p></div></header><main class="wrap"><div class="res"><div class="stars" aria-hidden="true">${starRow(pct)}</div><div class="big">${pct}%</div><p><b>${pct>=80?'Brilliant work!':pct>=50?'Good effort!':'Keep going, you can do it!'}</b>${gain>0?` You earned <b>${gain} new star${gain>1?'s':''}</b> ⭐`:''}</p>
     <div class="chips" style="justify-content:center">${m.t?`<span class="cchip">Multiple choice ${m.c}/${m.t}</span>`:''}${f.t?`<span class="cchip">Fill-in ${f.c}/${f.t}</span>`:''}${stt?`<span class="cchip">Structured ${ss}/${stt}</span>`:''}</div>
-    <div class="actions" style="justify-content:center"><button class="btn primary" id="again">Try again 🔁</button><button class="btn" id="rd">Read again 📖</button>${nx?'<button class="btn good" id="nxl">Next lesson ▶</button>':''}<button class="btn" id="bk">All lessons</button></div></div></main>${nav('home')}`;wireNav();
-    $('#again').onclick=()=>lessonTest(L);$('#rd').onclick=()=>openLesson(L.id);$('#bk').onclick=()=>subject(L.subject);const n=$('#nxl');if(n)n.onclick=()=>openLesson(nx.id)}})}
+    <div class="actions" style="justify-content:center"><button class="btn primary" id="again">Try again 🔁</button>${L.pages.length?'<button class="btn" id="rd">Read again 📖</button>':''}${nx?'<button class="btn good" id="nxl">Next mini-lesson ▶</button>':''}<button class="btn" id="bk">Back to the path</button></div></div></main>${nav('home')}`;wireNav();
+    $('#again').onclick=()=>lessonTest(L);const rdb=$('#rd');if(rdb)rdb.onclick=()=>openLesson(L.id);$('#bk').onclick=()=>subject(L.subject);const n=$('#nxl');if(n)n.onclick=()=>openLesson(nx.id)}})}
 /* ---- timed subject challenge ---- */
 async function mock(sid){
-  const r=await api('subjectQs',{subject:sid});if(!r.ok)return toast(r.error);
+  const r=await api('subjectQs',{subject:sid,level:S.level});if(!r.ok)return toast(r.error);
   if(r.questions.length<5)return toast('Not enough questions yet. Finish a few lessons first!');
   const items=shuffle(r.questions).slice(0,S.settings.mockq).map(q=>({k:q.t,q,lid:q.lid})),s=subj(sid);
   if(!confirm(`Subject challenge: ${items.length} questions in ${S.settings.mockt} minutes. Ready?`))return;
@@ -125,8 +135,8 @@ async function asgOpen(a){
 /* ---- me ---- */
 function me(){
   window.scrollTo(0,0);stopSpeak();const n=starsTotal(),lv=levelOf(n);
-  app.innerHTML=`<header class="hero"><div class="wrap"><h1>${lv.L[2]} ${esc(S.fullName||S.username)}</h1><p class="lede">${lv.L[1]} · ⭐ ${n} stars · 🔥 ${streakNow()} day streak</p></div></header><main class="wrap"><div class="panel"><h3>Pick your colours</h3><div class="themes">${[['sunny','☀️','linear-gradient(135deg,#ffe3a3,#6d3fe0)'],['candy','🍬','linear-gradient(135deg,#fbd0ee,#b01e95)'],['ocean','🌊','linear-gradient(135deg,#b8e4ff,#0b6fc2)'],['jungle','🌴','linear-gradient(135deg,#c7efb5,#1f8a3b)']].map(([t,e,g])=>`<button class="th ${S.theme===t?'on':''}" data-th="${t}" style="background:${g}" aria-label="${t} theme">${e}</button>`).join('')}</div></div>
+  app.innerHTML=`<header class="hero"><div class="wrap"><h1>${lv.L[2]} ${esc(S.fullName||S.username)}</h1><p class="lede">${lv.L[1]} · ⭐ ${n} stars · 🔥 ${streakNow()} day streak</p></div></header><main class="wrap"><div class="panel"><h3>My class</h3>${levelPills()}</div><div class="panel"><h3>Pick your colours</h3><div class="themes">${[['sunny','☀️','linear-gradient(135deg,#ffe3a3,#6d3fe0)'],['candy','🍬','linear-gradient(135deg,#fbd0ee,#b01e95)'],['ocean','🌊','linear-gradient(135deg,#b8e4ff,#0b6fc2)'],['jungle','🌴','linear-gradient(135deg,#c7efb5,#1f8a3b)']].map(([t,e,g])=>`<button class="th ${S.theme===t?'on':''}" data-th="${t}" style="background:${g}" aria-label="${t} theme">${e}</button>`).join('')}</div></div>
   <div class="panel"><h3>Sounds</h3><label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="snd" style="width:auto" ${S.sound?'checked':''}> Play happy sounds when I answer</label></div>
   <div class="panel"><h3>Badges</h3><div class="chips">${LEVELS.map(l=>`<span class="cchip ${n>=l[0]?'ok':''}">${l[2]} ${l[1]} · ${l[0]}⭐</span>`).join('')}</div></div>
-  <div class="actions"><button class="btn danger" id="so">Sign out</button></div><p class="hint">${APP_NAME} ${APP_VERSION}</p></main>${nav('me')}`;wireNav();
+  <div class="actions"><button class="btn danger" id="so">Sign out</button></div><p class="hint">${APP_NAME} ${APP_VERSION}</p></main>${nav('me')}`;wireNav();wireLevel(me);
   app.querySelectorAll('[data-th]').forEach(b=>b.onclick=()=>{setTheme(b.dataset.th);queueSave();me()});$('#snd').onchange=e=>{S.sound=e.target.checked;lsSet('bpz_snd',S.sound?'1':'0');beep('ok')};$('#so').onclick=signOut}

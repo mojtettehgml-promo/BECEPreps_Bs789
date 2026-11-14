@@ -1,8 +1,22 @@
-# BECE Prep Zone — v1.0 (Cloudflare)
-A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga)**. It starts empty; you add the topics.
+# BECE Prep Zone — v1.1 (Cloudflare)
+A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
 ## Deploy
 Same steps as the Trainer: GitHub repo → create D1 database `bece-prep-zone` and paste its ID into `wrangler.jsonc` → Workers Builds import (deploy command `npx wrangler deploy`) → add secrets `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PASSWORD_VAULT_KEY`. Use the Workers **Paid** plan (sign-in hashing needs more than the Free 10 ms CPU).
+
+
+## What is new in v1.1
+- **Basic 7 / 8 / 9.** Learners choose their class at sign-up (and can change it under Me). Each lesson belongs to a class.
+- **Computing** is the fourth subject.
+- **Short mini-lessons.** A topic (for example "1.1 Materials") is a path of short lessons of a few colourful cards each, ending with a **Topic test**.
+- **Questions are multiple choice and structured only.** Fill-in questions are no longer offered.
+- **Structured questions are typed and scored by ideas.** For each part you list the key ideas and, for each idea, the key words (different ways of saying it). A learner earns a mark for every idea found in what they typed. Wording does not have to match the notes. A missed idea shows a button "I said this in my own words", so a child is never penalised for a good answer with different words.
+- **Pictures.** Upload pictures in the lesson editor (🖼 Add a picture). Word chapter files that contain pictures bring them in automatically. A line `[[pic: description]]` in a card shows a picture slot to fill later. Teachers see the slot, learners do not.
+- **Textbook importer.** Lessons tab → *Import a textbook chapter (Word)*. Each chapter file becomes a topic of mini-lessons, plus Quick recap, Word bank and a drafted Topic test. File names like `B7_1.1_Materials.docx` set the class and topic. Multiple-choice questions are imported only when the file has an answer key ("Teacher Answer Key"). True/false questions and creative tasks ("design a poster") are left out.
+- Everything imported is a **draft**. Add the key ideas and key words to each structured question, then Save & publish.
+
+### Loading the Basic 7 Materials pilot
+Settings & backup → **Restore lessons from a backup** → choose `basic7-1.1-materials.json`. It adds the topic with its pictures and a ready Topic test.
 
 ## Adding topics (teacher)
 Sign in with the admin details → **Lessons** → choose the subject → upload one or more **Word (.docx) or PDF** files.

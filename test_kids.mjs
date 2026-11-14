@@ -9,7 +9,7 @@ const jpeg = "data:image/jpeg;base64,/9j/4AAQ";
 
 // sign-up
 let r = await call({ action: "register", username: "ama", password: "Strong#pass1", phone: "0241234567" }); ok(!r.ok, "full name is required");
-r = await call({ action: "register", username: "ama", password: "Strong#pass1", phone: "0241234567", fullName: "Ama Mensah" }); ok(r.ok && r.pending, "learner registers (pending)");
+r = await call({ action: "register", username: "ama", password: "Strong#pass1", phone: "0241234567", fullName: "Ama Mensah", level: "b8" }); ok(r.ok && r.pending, "learner registers (pending)");
 r = await call({ action: "login", username: "ama", password: "Strong#pass1" }); ok(r.s === 403, "pending learner cannot sign in");
 const adm = (await call({ action: "login", username: "boss", password: "S3cret!x" })).token; ok(!!adm, "admin signs in");
 r = await call({ action: "approveAll" }, adm); ok(r.approved === 1, "approve all");
@@ -25,11 +25,11 @@ const L1 = { subject: "sci", title: "Living Things", emoji: "🌱", order: 1, pa
 r = await call({ action: "lessonSave", ...L1 }, tok); ok(r.s === 403, "learner cannot save lessons");
 r = await call({ action: "lessonSave", ...L1, subject: "history" }, adm); ok(!r.ok, "unknown subject refused");
 r = await call({ action: "lessonSave", ...L1, pages: [] }, adm); ok(!r.ok, "needs a reading page");
-r = await call({ action: "lessonSave", ...L1, status: "published", questions: [] }, adm); ok(!r.ok, "cannot publish without questions");
+r = await call({ action: "lessonSave", ...L1, kind: "test", pages: [], status: "published", questions: [] }, adm); ok(!r.ok, "a test cannot be published without questions");
 r = await call({ action: "lessonSave", ...L1, questions: [{ t: "mcq", q: "x", o: ["a", "a"], c: 0 }] }, adm); ok(!r.ok, "duplicate options refused");
 r = await call({ action: "lessonSave", ...L1, questions: [{ t: "fib", q: "no blank", a: "x" }] }, adm); ok(!r.ok, "fill-in needs exactly one blank");
 r = await call({ action: "lessonSave", ...L1, questions: [{ t: "tf", q: "True?", a: "t" }] }, adm); ok(!r.ok, "true/false type is not accepted");
-r = await call({ action: "lessonSave", ...L1, questions: [{ t: "st", q: "s", parts: [{ q: "a", m: 2 }] }] }, adm); ok(!r.ok, "structured part needs a model answer");
+r = await call({ action: "lessonSave", ...L1, status: "published", questions: [{ t: "st", q: "s", parts: [{ q: "a", m: 2 }] }] }, adm); ok(!r.ok, "structured part needs a model answer to publish");
 r = await call({ action: "lessonSave", ...L1 }, adm); ok(r.ok && r.id, "draft lesson saved"); const id = r.id;
 r = await call({ action: "lessonList" }, tok); ok(r.ok && r.lessons.length === 0, "learner does not see drafts");
 r = await call({ action: "lessonGet", id }, tok); ok(r.s === 404, "learner cannot open a draft");
@@ -70,9 +70,28 @@ r = await call({ action: "asgReturn", aid, username: "ama", feedback: "Redo plea
 // backup, settings, delete
 r = await call({ action: "exportAll" }, adm); ok(r.ok && r.lessons.length === 1 && r.assignments.length === 1 && r.users.length === 1 && !JSON.stringify(r).includes("scrypt") && !r.users[0].pass, "backup has lessons, work, users and no password hashes");
 const backup = r.lessons;
+// v1.1: levels, topics, computing, pictures, idea-scored structured questions
+r = await call({ action: "lessonSave", subject: "comp", level: "b8", topic: "1.1 Hardware", title: "Parts of a computer", pages: [{ title: "a", body: "b" }], status: "published" }, adm); ok(r.ok, "Computing lesson (reading only) can be published, Basic 8");
+r = await call({ action: "lessonSave", subject: "comp", level: "b99", title: "x", pages: [{ body: "b" }] }, adm); ok(r.ok, "unknown level falls back to Basic 7"); const odd = r.id;
+r = await call({ action: "lessonList" }, tok); const cl = r.lessons.find((l) => l.subject === "comp" && l.level === "b8"); ok(cl && cl.topic === "1.1 Hardware" && cl.kind === "learn", "list carries level, topic and kind");
+r = await call({ action: "lessonDelete", id: odd }, adm);
+const IDEA = { t: "test", kind: "test", subject: "sci", level: "b7", topic: "1.1 Materials", title: "Topic test", status: "published", questions: [{ t: "st", q: "States of matter", parts: [{ q: "Name the three states.", m: 2, a: "Solid, liquid and gas.", ideas: [{ t: "solid", k: ["solid"] }, { t: "liquid", k: ["liquid", "fluid"] }, { t: "gas", k: ["gas", "vapour"] }] }] }] };
+r = await call({ action: "lessonSave", ...IDEA }, adm); ok(r.ok, "test lesson with key ideas saved"); const tid2 = r.id;
+r = await call({ action: "lessonGet", id: tid2 }, tok); ok(r.lesson.questions[0].parts[0].ideas.length === 3 && r.lesson.questions[0].parts[0].ideas[1].k[1] === "fluid", "key ideas and key words come back");
+r = await call({ action: "lessonSave", ...IDEA, questions: [{ t: "st", q: "q", parts: [{ q: "p", m: 1, ideas: [{ t: "idea", k: [] }] }] }] }, adm); ok(!r.ok, "publishing an idea with no key word is refused");
+r = await call({ action: "lessonSave", ...IDEA, status: "draft", questions: [{ t: "st", q: "q", parts: [{ q: "p", m: 1 }] }] }, adm); ok(r.ok, "a draft may keep a part that still needs its answer"); await call({ action: "lessonDelete", id: r.id }, adm);
+r = await call({ action: "lessonSave", ...IDEA, questions: [{ t: "st", q: "q", parts: [{ q: "p", m: 1 }] }] }, adm); ok(!r.ok, "publishing a part with no answer is refused");
+r = await call({ action: "imgSave", d: "data:image/png;base64,iVBORw0KGgo=" }, tok); ok(r.s === 403, "learner cannot upload pictures");
+r = await call({ action: "imgSave", d: "data:image/svg+xml;base64,AAAA" }, adm); ok(!r.ok, "only jpeg/png/webp pictures");
+r = await call({ action: "imgSave", d: "data:image/png;base64,iVBORw0KGgo=" }, adm); ok(r.ok && r.id, "admin uploads a picture"); const imgId = r.id;
+r = await call({ action: "imgGet", id: imgId }, tok); ok(r.ok && r.d.startsWith("data:image/png"), "learner can load it");
+r = await call({ action: "setLevel", level: "b9" }, tok); r = await call({ action: "me" }, tok); ok(r.level === "b9", "learner changes level");
+r = await call({ action: "setLevel", level: "b1" }, tok); ok(!r.ok, "bad level refused");
+r = await call({ action: "subjectQs", subject: "sci", level: "b8" }, tok); ok(r.ok && r.questions.length === 0, "challenge questions filter by level");
+r = await call({ action: "exportAll" }, adm); ok(r.images.length === 1 && r.images[0].id === imgId, "backup includes pictures");
 r = await call({ action: "setSettings", mockq: 20, mockt: 30 }, adm); ok(r.settings.mockq === 20, "settings saved");
-r = await call({ action: "lessonDelete", id }, adm); r = await call({ action: "lessonList" }, adm); ok(r.lessons.length === 0, "lesson deleted");
-r = await call({ action: "importLessons", lessons: backup }, adm); r = await call({ action: "lessonList" }, tok); ok(r.lessons.length === 1, "lessons restore from backup");
+r = await call({ action: "lessonDelete", id }, adm); r = await call({ action: "lessonList" }, adm); ok(!r.lessons.some((l) => l.id === id), "lesson deleted");
+r = await call({ action: "importLessons", lessons: backup }, adm); r = await call({ action: "lessonList" }, tok); ok(r.lessons.some((l) => l.id === id), "lessons restore from backup");
 r = await call({ action: "deleteUser", username: "ama" }, adm); r = await call({ action: "asgSubs", aid }, adm); ok(r.subs.length === 0, "deleting a learner removes their work");
 r = await call({ action: "login", username: "ama", password: "Strong#pass1" }); ok(r.s === 401, "deleted learner cannot sign in");
 r = await call({ action: "content" }, adm); ok(r.s === 404, "promotion endpoints are gone");
