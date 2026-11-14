@@ -26,6 +26,9 @@ function bookMarkup(doc){
     out.push('','> '+lines.map(x=>x.replace(/^- /,'')).join(' '),'')};
   doc.body.childNodes.forEach(n=>{if(n.nodeType!==1)return;const t=n.tagName.toLowerCase();
     if(t==='table'){const rows=[...n.querySelectorAll('tr')];const imgs=imgsIn(n);
+      if(rows.length===1&&rows[0].children.length===2){const A=cellLines(rows[0].children[0]),Bc=cellLines(rows[0].children[1]),f=A.join(' ').replace(/\*\*/g,'').replace(/\s+/g,' ').trim();
+        if(/^lesson\b/i.test(f)&&Bc.length){out.push('','@@LESSON '+Bc.join(' ').replace(/\*\*/g,'').trim(),'');return}
+        if(!Bc.length&&/^(explore|connect|show and share|try this|think about it|reflect)\b/i.test(f)){out.push('','@@MARK '+f.toLowerCase(),'');return}}
       if(rows.length===1&&rows[0].children.length===1){const L=cellLines(rows[0].children[0]);if(imgs.length)out.push('',...imgs,'');if(L.length)special(L);return}
       const g=rows.map(tr=>[...tr.children].map(c=>clean(cellLines(c).map(x=>x.replace(/^- /,'')).join('; ')).replace(/\|/g,'/')));
       if(imgs.length)out.push('',...imgs,'');out.push('');g.forEach((r,i)=>{out.push('| '+r.join(' | ')+' |');if(i===0)out.push('|'+r.map(()=>'---').join('|')+'|')});out.push('');return}
@@ -38,6 +41,18 @@ function bookMarkup(doc){
       if(/^(basic\s*\d|strand\s*\d)/i.test(x.replace(/\*\*/g,''))&&wc(x)<12)return;
       out.push(x,'')}});
   return out.join('\n').replace(/\n{3,}/g,'\n\n')}
+function segmentBook(lines){
+  if(!lines.some(l=>l.startsWith('@@LESSON ')))return [{title:'',lines,tries:[]}];
+  const segs=[];let cur=null,mode='keep';
+  for(const l of lines){
+    if(l.startsWith('@@LESSON ')){cur={title:l.slice(9).trim(),lines:[],tries:[]};segs.push(cur);mode='keep';continue}
+    if(!cur)continue;
+    if(l.startsWith('@@MARK ')){const m=l.slice(7);mode=/show and share/.test(m)?'skip':/try this/.test(m)?'try':/explore/.test(m)?'explore':'keep';continue}
+    if(mode==='skip')continue;
+    if(mode==='try'){const m=l.match(/^(\d{1,2})[.)]\s+(.*)$/);if(m){if(!/^(draw|sketch|make a (drawing|model))/i.test(m[2].trim()))cur.tries.push({t:'st',q:m[2].trim(),parts:[{q:'Write your answer.',m:2,a:'',ideas:[]}]})}else if(l.trim()&&cur.tries.length&&!/^(answer these|work through)/i.test(l))cur.tries[cur.tries.length-1].q+=' '+l.trim();continue}
+    if(mode==='explore'&&/^(talk with|share your|discuss|compare your|draw your)/i.test(l.trim()))continue;
+    cur.lines.push(l)}
+  return segs}
 const wc=s=>(String(s).replace(/\[\[img:[^\]]*\]\]/g,' ').match(/\S+/g)||[]).length;
 function bookBlocks(lines){const blocks=[];let cur=[];const fl=()=>{if(cur.length)blocks.push({t:cur.join('\n')});cur=[]};
   for(const l of lines){if(!l.trim()){fl();continue}if(/^@@SEC /.test(l)){fl();blocks.push({sec:l.slice(6).replace(/^[A-H]\.\s*/,'')});continue}
@@ -78,9 +93,11 @@ async function bookToLessons(file,subject,level0){
   const ends=[iS,iW,iQ,iK].filter(x=>x>=0).sort((a,b)=>a-b);const end=ends.length?ends[0]:body.length;
   const seg=(i)=>{if(i<0)return[];const nx=[iS,iW,iQ,iK].filter(x=>x>i).sort((a,b)=>a-b)[0];return body.slice(i+1,nx===undefined?body.length:nx)};
   const lessons=[],E=EM;let order=0;const mk=(title,emoji,pages)=>{order++;lessons.push({subject,level,topic,kind:'learn',title:title.slice(0,100),emoji,order,status:'draft',pages,questions:[],source:file.name})};
-  const ml=microLessons(bookBlocks(body.slice(0,end)),topic);
-  ml.forEach((m,i)=>{const pages=toPages(m.blocks);if(!pages.length)return;let title=(m.blocks.find(b=>/^## /.test(b.t))||{}).t;title=title?title.split('\n')[0].replace(/^##\s*/,''):(m.sec||topic);
-    if(i===0&&!/^## /.test(m.blocks[0].t)&&/🎯/.test(m.blocks[0].t))title='Get ready! What you will learn';mk(title,E[order%E.length],pages)});
+  const segsB=segmentBook(body.slice(0,end));let first=true;
+  for(const sg of segsB){const ml=microLessons(bookBlocks(sg.lines),topic),made=[];
+    ml.forEach((m,i)=>{const pages=toPages(m.blocks);if(!pages.length)return;let title=(m.blocks.find(b=>/^## /.test(b.t))||{}).t;title=title?title.split('\n')[0].replace(/^##\s*/,''):(sg.title?(made.length?sg.title+' (part '+(made.length+1)+')':sg.title):(m.sec||topic));
+      if(first&&i===0&&!sg.title&&!/^## /.test(m.blocks[0].t)&&/🎯/.test(m.blocks[0].t))title='Get ready! What you will learn';first=false;mk(title,E[order%E.length],pages);made.push(lessons[lessons.length-1])});
+    if(sg.tries.length&&made.length)made[made.length-1].questions.push(...sg.tries)}
   const rec=bookBlocks(seg(iS));if(rec.length){const pages=toPages(rec);pages.length&&mk('Quick recap','⭐',pages)}
   const wd=bookBlocks(seg(iW));if(wd.length){const pages=toPages(wd);pages.length&&mk('Word bank','📚',pages)}
   const q=bookQuestions(seg(iQ),seg(iK));

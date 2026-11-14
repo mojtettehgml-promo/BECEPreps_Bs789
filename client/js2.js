@@ -62,8 +62,12 @@ function addMistakes(list){const m=P().mistakes=P().mistakes||[];for(const r of 
 function clearMistakes(list){const m=P().mistakes=P().mistakes||[];for(const r of list){if(r.ok){const id=mkId(r.it.lid||'x',r.it.q),i=m.findIndex(x=>x.id===id);if(i>=0)m.splice(i,1)}}}
 const starRow=pct=>pct>=80?'⭐⭐⭐':pct>=50?'⭐⭐☆':pct>=20?'⭐☆☆':'☆☆☆';
 /* ---- lesson test: multiple choice, then fill-in, then structured ---- */
-function lessonTest(L){
-  const order={mcq:0,fib:1,st:2},items=L.questions.map(q=>({k:q.t,q,lid:L.id})).sort((a,b)=>order[a.k]-order[b.k]);
+const shufMcq=q=>{if(q.o.some(t=>/\b(all|none) of the above\b|\bboth\b/i.test(t)))return q;const idx=shuffle(q.o.map((_,i)=>i));return{...q,o:idx.map(i=>q.o[i]),c:idx.indexOf(q.c)}};
+async function lessonTest(L){
+  const isT=L.kind==='test';let pool=L.questions.map(q=>({...q,lid:L.id}));
+  if(isT){const r=await api('subjectQs',{subject:L.subject,level:lvlOf(L),bank:true});if(r.ok){const seen=new Set(pool.map(q=>normA(q.q)));r.questions.filter(q=>(q.topic||'')===(L.topic||'')).forEach(q=>{const k=normA(q.q);if(!seen.has(k)){seen.add(k);pool.push(q)}})}}
+  const nMc=isT?8:5,nSt=isT?3:1,mc=shuffle(pool.filter(q=>q.t==='mcq')).slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=shuffle(pool.filter(q=>q.t==='st')).slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=shuffle(pool.filter(q=>q.t==='fib')).slice(0,2).map(q=>({k:'fib',q,lid:q.lid}));
+  const items=[...mc,...fb,...st];
   if(!items.length){toast('This lesson has no questions yet.');return subject(L.subject)}
   const before=starsTotal();
   runQuiz({items,instant:true,onExit:()=>L.pages.length?openLesson(L.id,L.pages.length-1):subject(L.subject),onDone:res=>{
@@ -89,6 +93,39 @@ async function mock(sid){
     const wrong=res.filter(x=>!x.ok);
     app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Challenge done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">${res.length<n?`You answered ${res.length} of ${n}. `:''}Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
     ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>mock(sid);$('#b').onclick=()=>subject(sid)}})}
+
+/* ---- question bank: random practice from the notes' questions and answers ---- */
+const qh=str=>{let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;return (h>>>0).toString(36)};
+const qid=(lid,q)=>qh(lid+'|'+normA(q.q).slice(0,160));
+const bankSeen=()=>((P().bank=P().bank||{}).seen=P().bank.seen||{});
+async function bankInfo(sid){
+  const r=await api('subjectQs',{subject:sid,level:S.level,bank:true});const el=$('#qbs');if(!r.ok||!el)return;
+  const n=r.questions.length;if(!n){el.textContent='Questions are on their way';return}
+  const seen=bankSeen(),d=r.questions.filter(q=>seen[qid(q.lid,q)]!==undefined).length;
+  el.textContent=`${d} of ${n} questions practised`}
+async function bank(sid){
+  const r=await api('subjectQs',{subject:sid,level:S.level,bank:true});if(!r.ok)return toast(r.error);
+  const all=r.questions;if(all.length<3)return toast('The question bank is still being filled. Come back soon!');
+  const seen=bankSeen(),s=subj(sid),N=10;
+  const rank=q=>{const v=seen[qid(q.lid,q)];return v===undefined?0:v===0?1:2};
+  const pick=(list,n)=>{const g=[[],[],[]];list.forEach(q=>g[rank(q)].push(q));return [].concat(...g.map(shuffle)).slice(0,n)};
+  const mc=all.filter(q=>q.t==='mcq'),st=all.filter(q=>q.t==='st');
+  let nst=Math.min(st.length,mc.length?Math.round(N*0.2):N),nmc=Math.min(mc.length,N-nst);nst=Math.min(st.length,N-nmc);
+  const items=shuffle([...pick(mc,nmc).map(q=>({k:'mcq',q,lid:q.lid})),...pick(st,nst).map(q=>({k:'st',q,lid:q.lid}))]);
+  const before=starsTotal();
+  runQuiz({items,instant:true,onExit:()=>subject(sid),onDone:res=>{
+    res.forEach(x=>{const full=x.it.k==='st'?x.s>=x.t:x.ok;bankSeen()[qid(x.it.lid,x.it.q)]=full?1:0});
+    const mq=res.filter(x=>x.it.k==='mcq'),sq=res.filter(x=>x.it.k==='st'),mc_=mq.filter(x=>x.ok).length,ss=sq.reduce((a,x)=>a+x.s,0),stt=sq.reduce((a,x)=>a+x.t,0);
+    const got=mc_+ss,tot=mq.length+stt,pct=tot?Math.round(100*got/tot):0;
+    addMistakes(res);clearMistakes(res);touchStreak();queueSave();const gain=starsTotal()-before;
+    const sn=bankSeen(),done=all.filter(q=>sn[qid(q.lid,q)]!==undefined).length,bp=Math.round(100*done/all.length);
+    window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
+    const wrong=res.filter(x=>x.it.k==='mcq'&&!x.ok);
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>🎯 Question bank</h1><p class="lede">${s.title} · ${lvlName(S.level)}</p></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${pct}%</div><p><b>${pct>=80?'Brilliant work!':pct>=50?'Good effort!':'Keep practising, you can do it!'}</b>${gain>0?` +${gain} ⭐`:''}</p>
+    <div class="chips" style="justify-content:center">${mq.length?`<span class="cchip">Multiple choice ${mc_}/${mq.length}</span>`:''}${stt?`<span class="cchip">Structured ${ss}/${stt}</span>`:''}</div>
+    <div class="bankp"><div class="bankp-t"><span>Bank practised</span><b>${bp}%</b></div><div class="pbarw"><i style="width:${bp}%"></i></div><small class="hint">${done} of ${all.length} questions. New questions come up first.</small></div>
+    <div class="actions" style="justify-content:center"><button class="btn primary" id="a">Practise 10 more 🔁</button><button class="btn" id="b">Back</button></div></div>
+    ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${rtInline(x.it.q.o[x.it.q.c])}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>bank(sid);$('#b').onclick=()=>subject(sid)}})}
 function retryMistakes(){
   const m=(P().mistakes||[]).slice(0,15);if(!m.length)return toast('No mistakes to fix. 🎉');
   const items=m.map(x=>({k:x.k,q:x.q,lid:x.id.split('|')[0]}));

@@ -109,14 +109,14 @@ export function cleanQuestion(p, draft = false) {
 export function cleanLesson(b, old) {
   const subject = SUBJECTS.includes(b.subject) ? b.subject : ""; if (!subject) return { error: "Choose a subject." };
   const title = clip(b.title, 120); if (!title) return { error: "Enter a title." };
-  const kind = b.kind === "test" ? "test" : "learn", level = LEVELS.includes(b.level) ? b.level : "b7";
+  const kind = b.kind === "test" ? "test" : b.kind === "bank" ? "bank" : "learn", level = LEVELS.includes(b.level) ? b.level : "b7";
   const pages = (Array.isArray(b.pages) ? b.pages : []).slice(0, 8).map((x) => ({ title: clip(x && x.title, 120), body: clip(x && x.body, 12000) })).filter((x) => x.body);
   if (kind === "learn" && !pages.length) return { error: "Add at least one reading page." };
   const qs = [], raw = Array.isArray(b.questions) ? b.questions : [];
   if (raw.length > 80) return { error: "At most 80 questions per lesson." };
   for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i], b.status !== "published"); if (r.error) return { error: "Question " + (i + 1) + ": " + r.error }; qs.push(r.out); }
   const status = b.status === "published" ? "published" : "draft";
-  if (status === "published" && kind === "test" && !qs.length) return { error: "Add at least one question before publishing a test." };
+  if (status === "published" && kind !== "learn" && !qs.length) return { error: "Add at least one question before publishing." };
   const L = { id: old ? old.id : clip(b.id, 40) || "l" + rid(5), subject, level, topic: clip(b.topic, 80), kind, title, emoji: clip(b.emoji, 4) || "📘", order: Math.max(0, Math.min(9999, Math.floor(Number(b.order)) || 0)), status, pages, questions: qs, source: clip(b.source, 200), updatedAt: Date.now() };
   if (JSON.stringify(L).length > 400000) return { error: "This lesson is too large." };
   return { out: L };
@@ -269,7 +269,7 @@ export function createHandler(getS, env = {}) {
     if (action === "subjectQs") {
       const sub = SUBJECTS.includes(body.subject) ? body.subject : ""; if (!sub) return fail("Choose a subject.");
       const out = [];
-      for (const m of (await lidx()).filter((x) => x.subject === sub && x.status === "published" && (!LEVELS.includes(body.level) || x.level === body.level))) { const l = await get("lesson:" + m.id); if (l) l.questions.forEach((q, i) => { if (q.t !== "st") out.push({ ...q, lid: l.id, qi: i }); }); }
+      for (const m of (await lidx()).filter((x) => x.subject === sub && x.status === "published" && (body.bank ? true : x.kind !== "bank") && (!LEVELS.includes(body.level) || x.level === body.level))) { const l = await get("lesson:" + m.id); if (l) l.questions.forEach((q, i) => { if (body.bank || q.t !== "st") out.push({ ...q, lid: l.id, qi: i, topic: l.topic || "" }); }); }
       return json({ ok: true, questions: out });
     }
 

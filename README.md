@@ -1,9 +1,18 @@
-# BECE Prep Zone — v1.1 (Cloudflare)
+# BECE Prep Zone — v1.2 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
 ## Deploy
 Same steps as the Trainer: GitHub repo → create D1 database `bece-prep-zone` and paste its ID into `wrangler.jsonc` → Workers Builds import (deploy command `npx wrangler deploy`) → add secrets `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PASSWORD_VAULT_KEY`. Use the Workers **Paid** plan (sign-in hashing needs more than the Free 10 ms CPU).
 
+
+## What is new in v1.2
+- **Every mini-lesson has its own Quick check.** It draws 5 multiple-choice questions and 1 structured question at random from that lesson's questions, and shuffles the answer order. "Try again" gives a different set.
+- **Topic test draws from the whole topic.** 8 multiple-choice and 3 structured questions, picked at random from every lesson in the topic. Question bank and Subject challenge use the same pool.
+- **Word importer reads the "Explore / Connect / Try This" layout.** Lesson header tables become lesson titles, "Try This" questions become draft questions for that lesson (not notes), and "Show and Share" class-discussion prompts are left out.
+- Topics are listed in order (1.1, 1.2, ...).
+
+### Loading Basic 7 Strand 1
+Settings & backup, Restore lessons from a backup, choose `basic7-strand1-v1.2.json` (1.1 Materials and 1.2 Living Cells).
 
 ## What is new in v1.1
 - **Basic 7 / 8 / 9.** Learners choose their class at sign-up (and can change it under Me). Each lesson belongs to a class.
