@@ -135,3 +135,4 @@ main.wrap{padding-bottom:110px}
 
 .rich table{display:table;width:100%;overflow:visible;table-layout:auto}.rich td,.rich th{min-width:0!important;padding:8px 7px;font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}.rich td:first-child,.rich th:first-child{width:auto}
 .rich table{min-width:0!important}
+.rich td,.rich th{overflow-wrap:break-word!important;word-break:normal!important;hyphens:none}.rich td:first-child,.rich th:first-child{min-width:7.5em!important}

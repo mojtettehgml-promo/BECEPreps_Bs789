@@ -6,9 +6,11 @@ export function d1Store(db) {
     async get(k) { const v = await db.prepare("SELECT v FROM kv WHERE k = ?").bind(k).first("v"); return v == null ? null : JSON.parse(v); },
     async setJSON(k, v) { await db.prepare("INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v").bind(k, JSON.stringify(v)).run(); },
     async delete(k) { await db.prepare("DELETE FROM kv WHERE k = ?").bind(k).run(); },
-    async list({ prefix = "" } = {}) {
-      const { results } = await db.prepare("SELECT k FROM kv WHERE k >= ? AND k < ? ORDER BY k").bind(prefix, prefix + "￿").all();
-      return { blobs: results.map((r) => ({ key: r.k })) };
+    // list({prefix}) -> keys only. list({prefix, values:true}) -> keys with their parsed values in ONE query
+    // (a Worker may run only a limited number of D1 queries per request, so never read many rows one by one).
+    async list({ prefix = "", values = false } = {}) {
+      const { results } = await db.prepare(values ? "SELECT k, v FROM kv WHERE k >= ? AND k < ? ORDER BY k" : "SELECT k FROM kv WHERE k >= ? AND k < ? ORDER BY k").bind(prefix, prefix + "\uffff").all();
+      return { blobs: results.map((r) => (values ? { key: r.k, value: JSON.parse(r.v) } : { key: r.k })) };
     },
   };
 }

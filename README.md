@@ -1,6 +1,13 @@
 # BECE Prep Zone — v1.2.1 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
+## v1.3.0 — built-in Basic 7 Integrated Science lessons
+- 285 ready-made lessons (20 topics: Strands 1–5) ship inside the app (`src/seed/`). They are only readable by the signed-in admin.
+- Admin → Settings & backup → **Add the built-in lessons** adds only lessons that are missing. Lessons you edited are never changed; lessons you deleted are not brought back unless you tap *Bring back the ones I deleted*.
+- Lessons are normal lessons afterwards: edit, unpublish, delete or add your own.
+- Reading many lessons now takes one database query (D1 allows only a limited number of queries per request).
+- Rebuild the seed from the Word books with `python3 tools/strands/make_seed.py`.
+
 ## Deploy
 Same steps as the Trainer: GitHub repo → create D1 database `bece-prep-zone` and paste its ID into `wrangler.jsonc` → Workers Builds import (deploy command `npx wrangler deploy`) → add secrets `ADMIN_USERNAME`, `ADMIN_PASSWORD`, `PASSWORD_VAULT_KEY`. Use the Workers **Paid** plan (sign-in hashing needs more than the Free 10 ms CPU).
 

@@ -15,9 +15,11 @@ function bookMarkup(doc){
   const inl=n=>{let s='';n.childNodes.forEach(c=>{if(c.nodeType===3)s+=c.nodeValue;else if(c.nodeType===1){const t=c.tagName.toLowerCase();if(t==='img')return;const i=inl(c);if(t==='strong'||t==='b')s+=i.trim()?'**'+i.trim()+'** ':'';else if(t==='sup')s+='^{'+i+'}';else if(t==='sub')s+='_{'+i+'}';else if(t==='br')s+=' ';else s+=i}});return s};
   const imgsIn=n=>[...n.querySelectorAll('img')].map(i=>'[[img:'+(i.getAttribute('src')||'').slice(4)+']]');
   const cellLines=c=>{const L=[];c.childNodes.forEach(x=>{if(x.nodeType!==1)return;const t=x.tagName.toLowerCase();if(t==='ul'||t==='ol')x.querySelectorAll(':scope>li').forEach(li=>{const z=clean(inl(li));if(z)L.push('- '+z)});else{const z=clean(inl(x));if(z)L.push(z)}});if(!L.length){const z=clean(inl(c));if(z)L.push(z)}return L};
+  let noHead=false;
   const special=(lines)=>{const f=lines[0].replace(/\*\*/g,'').trim(),rest=lines.slice(1);
     if(/^what you will learn/i.test(f)){out.push('','> 🎯 **'+f+'**',...rest.map(x=>x.startsWith('- ')?x:'- '+x),'');return}
     if(/^[A-H]\.\s+\S/.test(f)){out.push('','@@SEC '+f.replace(/\s+/g,' '),'',...rest,'');return}
+    if(/^diagram to insert/i.test(f)){out.push('','[[pic: '+(rest.join(' ').replace(/\*\*/g,'').trim()||'diagram')+']]','');return}
     if(/^activity\b/i.test(f)){out.push('','> 🧪 **'+f+'** '+rest.map(x=>x.replace(/^- /,'')).join(' '),'');return}
     if(/^chapter summary$/i.test(f)){out.push('','@@SUMMARY','');return}
     if(/^word bank$/i.test(f)){out.push('','@@WORDS','');return}
@@ -27,27 +29,33 @@ function bookMarkup(doc){
   doc.body.childNodes.forEach(n=>{if(n.nodeType!==1)return;const t=n.tagName.toLowerCase();
     if(t==='table'){const rows=[...n.querySelectorAll('tr')];const imgs=imgsIn(n);
       if(rows.length===1&&rows[0].children.length===2){const A=cellLines(rows[0].children[0]),Bc=cellLines(rows[0].children[1]),f=A.join(' ').replace(/\*\*/g,'').replace(/\s+/g,' ').trim();
-        if(/^lesson\b/i.test(f)&&Bc.length){out.push('','@@LESSON '+Bc.join(' ').replace(/\*\*/g,'').trim(),'');return}
-        if(!Bc.length&&/^(explore|connect|show and share|try this|think about it|reflect)\b/i.test(f)){out.push('','@@MARK '+f.toLowerCase(),'');return}}
+        if(/^lesson\b/i.test(f)&&Bc.length){noHead=false;out.push('','@@LESSON '+Bc.join(' ').replace(/\*\*/g,'').trim(),'');return}
+        if(!Bc.length&&/^(explore|connect|show and share|try this|think about it|reflect)\b/i.test(f)){noHead=/show and share|try this/i.test(f);out.push('','@@MARK '+f.toLowerCase(),'');return}}
       if(rows.length===1&&rows[0].children.length===1){const L=cellLines(rows[0].children[0]);if(imgs.length)out.push('',...imgs,'');if(L.length)special(L);return}
+      if(rows.length===1&&rows[0].children.length>=2){const cells=[...rows[0].children].map(c=>cellLines(c));if(cells.every(L=>L.length>=3)){if(imgs.length)out.push('',...imgs,'');cells.forEach(L=>{out.push('','**'+L[0].replace(/\*\*/g,'').replace(/[:;.]$/,'')+'**');L.slice(1).forEach(x=>out.push('- '+x.replace(/^- /,'')));out.push('')});return}}
       const g=rows.map(tr=>[...tr.children].map(c=>clean(cellLines(c).map(x=>x.replace(/^- /,'')).join('; ')).replace(/\|/g,'/')));
       if(imgs.length)out.push('',...imgs,'');out.push('');g.forEach((r,i)=>{out.push('| '+r.join(' | ')+' |');if(i===0)out.push('|'+r.map(()=>'---').join('|')+'|')});out.push('');return}
     if(/^h[1-6]$/.test(t)){const x=clean(inl(n).replace(/\*\*/g,''));if(x)out.push('','## '+x,'');return}
     if(t==='ul'||t==='ol'){let k=(parseInt(n.getAttribute('start'))||1)-1;out.push('');n.querySelectorAll(':scope>li').forEach(li=>{const x=clean(inl(li));if(x)out.push(t==='ul'?'- '+x:(++k)+'. '+x)});out.push('');return}
     if(t==='p'){const imgs=imgsIn(n),x=clean(inl(n));if(imgs.length)out.push('',...imgs,'');if(!x)return;
-      if(/^(end of chapter assessment|revision exercises)$/i.test(x)){out.push('','@@QUESTIONS','');return}if(/^teacher answer key$/i.test(x)){out.push('','@@KEY','');return}
-      if(/^Part\s+\d+\b/i.test(x)){out.push('','## '+x.replace(/\*\*/g,''),'');return}
+      const y=x.replace(/\*\*/g,'').trim();
+      if(/^(end of chapter assessment|revision exercises)$/i.test(y)){noHead=true;out.push('','@@QUESTIONS','');return}if(/^teacher answer key$/i.test(y)){out.push('','@@KEY','');return}
+      if(/^chapter summary$/i.test(y)){out.push('','@@SUMMARY','');return}if(/^(word bank|key terms)$/i.test(y)){out.push('','@@WORDS','');return}
+      if(/^Part\s+\d+\b/i.test(y)){noHead=true;out.push('','## '+y,'');return}
+      if(!noHead&&/^\d{1,2}\.\s+[A-Z]/.test(y)&&wc(y)<=11&&!/[.!?:;,]$/.test(y)&&!/\d{2,}/.test(y)){out.push('','## '+y.replace(/^\d+\.\s*/,''),'');return}
       if(/^sub ?strand/i.test(x.replace(/\*\*/g,''))){out.push('@@META '+x.replace(/\*\*/g,''));return}
       if(/^(basic\s*\d|strand\s*\d)/i.test(x.replace(/\*\*/g,''))&&wc(x)<12)return;
       out.push(x,'')}});
   return out.join('\n').replace(/\n{3,}/g,'\n\n')}
 function segmentBook(lines){
-  if(!lines.some(l=>l.startsWith('@@LESSON ')))return [{title:'',lines,tries:[]}];
+  if(!lines.some(l=>l.startsWith('@@LESSON ')))return [{title:'',lines,tries:[],assess:[]}];
   const segs=[];let cur=null,mode='keep';
   for(const l of lines){
-    if(l.startsWith('@@LESSON ')){cur={title:l.slice(9).trim(),lines:[],tries:[]};segs.push(cur);mode='keep';continue}
+    if(l.startsWith('@@LESSON ')){cur={title:l.slice(9).trim(),lines:[],tries:[],assess:[]};segs.push(cur);mode='keep';continue}
     if(!cur)continue;
     if(l.startsWith('@@MARK ')){const m=l.slice(7);mode=/show and share/.test(m)?'skip':/try this/.test(m)?'try':/explore/.test(m)?'explore':'keep';continue}
+    if(/^## Part\s+\d/i.test(l))mode='assess';
+    if(mode==='assess'){cur.assess.push(l);continue}
     if(mode==='skip')continue;
     if(mode==='try'){const m=l.match(/^(\d{1,2})[.)]\s+(.*)$/);if(m){if(!/^(draw|sketch|make a (drawing|model))/i.test(m[2].trim()))cur.tries.push({t:'st',q:m[2].trim(),parts:[{q:'Write your answer.',m:2,a:'',ideas:[]}]})}else if(l.trim()&&cur.tries.length&&!/^(answer these|work through)/i.test(l))cur.tries[cur.tries.length-1].q+=' '+l.trim();continue}
     if(mode==='explore'&&/^(talk with|share your|discuss|compare your|draw your)/i.test(l.trim()))continue;
@@ -73,10 +81,15 @@ function bookQuestions(ql,kl){
   const keyMap={};{let on=false;for(const l of kl){if(/^## /.test(l)){on=/multiple/i.test(l)}else if(on||/multiple choice/i.test(l)){if(/multiple choice/i.test(l)){on=true;continue}let m,re=/(\d{1,2})\s*[:.)-]?\s*([A-E])\b/g;while((m=re.exec(l)))keyMap[+m[1]]=m[2]}}}
   const parts=[];for(const l of ql){const m=l.match(/^## Part\s+\d+\s*(.*)$/i);if(m)parts.push({name:m[1],lines:[]});else if(parts.length)parts[parts.length-1].lines.push(l)}
   const out=[],sk={tf:0,syn:0,mcqNoKey:0};
-  const items=lines=>{const it=[];for(const l of lines){if(!l.trim()||/^answer\s*_*\s*$/i.test(l.trim()))continue;const m=l.match(/^(\d{1,2})[.)]\s+(.*)$/);if(m)it.push({n:+m[1],t:m[2]});else if(it.length&&!/^(Choose|Answer each|Write |Work through|Read the|These questions)/i.test(l))it[it.length-1].t+=' '+l}return it};
+  const items=lines=>{const it=[];for(const l of lines){if(!l.trim()||/^answer\s*_*\s*$/i.test(l.trim()))continue;const m=l.replace(/\*\*/g,'').match(/^(\d{1,2})[.)]\s+(.*)$/);if(m)it.push({n:+m[1],t:m[2]});else if(it.length&&!/^(Choose|Answer each|Write |Work through|Read the|These questions)/i.test(l))it[it.length-1].t+=' '+l}return it};
   for(const p of parts){const nm=p.name.toLowerCase();
-    if(/multiple/.test(nm)){let cur=null;const qs=[];for(const l of p.lines){let m;if((m=l.match(/^(\d{1,2})[.)]\s+(.*)$/))){cur={n:+m[1],q:m[2],o:[]};qs.push(cur)}else if(cur&&(m=l.match(/^([A-E])[.)]\s+(.*)$/)))cur.o.push(m[2]);else if(cur&&l.trim()&&!/^(Choose|Answer)/i.test(l)){cur.o.length?cur.o[cur.o.length-1]+=' '+l:cur.q+=' '+l}}
-      for(const q of qs){const k='ABCDE'.indexOf(keyMap[q.n]||'');if(q.o.length<2||k<0||k>=q.o.length){sk.mcqNoKey++;continue}out.push({t:'mcq',q:q.q.trim(),o:q.o.map(x=>x.trim()),c:k,e:''})}}
+    if(/multiple/.test(nm)){let cur=null,bold=false;const qs=[];for(const l of p.lines){let m;
+      if((m=l.match(/^\*\*(\d{1,2})[.)]\s+(.*?)\*\*$/))){cur={n:+m[1],q:m[2],o:[]};qs.push(cur);bold=true}
+      else if(!bold&&(m=l.match(/^(\d{1,2})[.)]\s+(.*)$/))){cur={n:+m[1],q:m[2],o:[]};qs.push(cur)}
+      else if(cur&&(m=l.match(/^([A-E])[.)]\s+(.*)$/)))cur.o.push(m[2]);
+      else if(cur&&bold&&(m=l.match(/^\d[.)]\s+(.*)$/)))cur.o.push(m[1]);
+      else if(cur&&l.trim()&&!/^(Choose|Answer)/i.test(l)){cur.o.length?cur.o[cur.o.length-1]+=' '+l:cur.q+=' '+l}}
+      for(const q of qs){if(q.o.length<2)continue;const kk=keyMap[q.n],k=kk?'ABCDE'.indexOf(kk):-1;if(k<0||k>=q.o.length){sk.mcqNoKey++;out.push({t:'mcq',q:q.q.trim(),o:q.o.map(x=>x.trim()),c:-1,nokey:true,e:''});continue}out.push({t:'mcq',q:q.q.trim(),o:q.o.map(x=>x.trim()),c:k,e:''})}}
     else if(/true/.test(nm))sk.tf+=items(p.lines).length;
     else if(/synthesis/.test(nm))sk.syn+=items(p.lines).length;
     else{const it=items(p.lines);
@@ -95,9 +108,11 @@ async function bookToLessons(file,subject,level0){
   const lessons=[],E=EM;let order=0;const mk=(title,emoji,pages)=>{order++;lessons.push({subject,level,topic,kind:'learn',title:title.slice(0,100),emoji,order,status:'draft',pages,questions:[],source:file.name})};
   const segsB=segmentBook(body.slice(0,end));let first=true;
   for(const sg of segsB){const ml=microLessons(bookBlocks(sg.lines),topic),made=[];
-    ml.forEach((m,i)=>{const pages=toPages(m.blocks);if(!pages.length)return;let title=(m.blocks.find(b=>/^## /.test(b.t))||{}).t;title=title?title.split('\n')[0].replace(/^##\s*/,''):(sg.title?(made.length?sg.title+' (part '+(made.length+1)+')':sg.title):(m.sec||topic));
+    ml.forEach((m,i)=>{const pages=toPages(m.blocks);if(!pages.length)return;let title=(m.blocks.find(b=>/^## /.test(b.t))||{}).t;title=title?title.split('\n')[0].replace(/^##\s*/,'').replace(/^\d+[.)]\s*/,''):(sg.title?(made.length?sg.title+' (part '+(made.length+1)+')':sg.title):(m.sec||topic));
       if(first&&i===0&&!sg.title&&!/^## /.test(m.blocks[0].t)&&/🎯/.test(m.blocks[0].t))title='Get ready! What you will learn';first=false;mk(title,E[order%E.length],pages);made.push(lessons[lessons.length-1])});
-    if(sg.tries.length&&made.length)made[made.length-1].questions.push(...sg.tries)}
+    if(sg.assess&&sg.assess.length&&made.length){const qa=bookQuestions(sg.assess,[]);made[made.length-1].questions.push(...qa.questions);made[made.length-1].segId=segsB.indexOf(sg)}
+    if(sg.tries.length&&made.length)made[made.length-1].questions.push(...sg.tries)
+    made.forEach(m=>m.segId=segsB.indexOf(sg))}
   const rec=bookBlocks(seg(iS));if(rec.length){const pages=toPages(rec);pages.length&&mk('Quick recap','⭐',pages)}
   const wd=bookBlocks(seg(iW));if(wd.length){const pages=toPages(wd);pages.length&&mk('Word bank','📚',pages)}
   const q=bookQuestions(seg(iQ),seg(iK));

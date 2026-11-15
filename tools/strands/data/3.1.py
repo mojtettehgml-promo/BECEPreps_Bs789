@@ -1,0 +1,50 @@
+from common import S,X
+NUT="Carbohydrates::carbohydrate,carbohydrates|Proteins::protein,proteins|Fats and oils::fats,fat,oils,oil|Vitamins::vitamin,vitamins|Mineral salts::mineral,minerals|Water::water|Dietary fibre::fibre,fiber"
+STARV="Very thin with weak muscles::thin,weak,muscles,little fat|Dry skin and dull or thin hair::dry,skin,hair,dull|Tires quickly and has little energy::tires,tired,energy,slowly|Growth slows down or stops::growth,grow|Falls sick easily and recovers slowly::sick,disease,infection,illness|Finds it hard to concentrate::concentrate,concentration,think,learn"
+DIG="Digestion is the breaking down of large insoluble food molecules into small soluble molecules::breaking down,large,insoluble,small,soluble,breaks|So that they can pass into the blood::blood,absorbed,absorb"
+BREAD="Saliva contains the enzyme salivary amylase::amylase,saliva,enzyme|It changes starch into maltose, a sugar, so the food tastes sweet::starch,maltose,sugar,sweet"
+STOM="Churns the food and mixes it with gastric juice::churn,churns,mix,mixes,gastric|Hydrochloric acid kills germs::acid,germs,kills,bacteria|Pepsin begins the digestion of protein::pepsin,protein,proteins"
+FATE="Starch is digested to glucose (sugar)::glucose,sugar,maltose|Protein is digested to amino acids::amino|Fats and oils are digested to fatty acids::fatty acids,fatty acid|and glycerol::glycerol"
+QA=[
+S("Define food",2,"Food is any substance that a living thing takes in to give it energy, to supply materials for growth and repair, and to provide substances that protect the body.",
+  "A substance that a living thing takes in::substance,takes in,eat,eats,eaten,material|To give energy, growth and repair, and protection::energy,growth,repair,protect,protection"),
+S("Name the food groups that give energy and the food group that builds new cells",3,"Carbohydrates and fats and oils give energy; proteins build new cells.",
+  "Carbohydrates give energy::carbohydrate,carbohydrates|Fats and oils give energy::fats,fat,oils,oil|Proteins build new cells::protein,proteins"),
+S("State three differences between a person who has been starved",3,"A starved person is very thin with weak muscles, has dry skin and dull hair, tires quickly, grows slowly, falls sick easily and cannot concentrate.",STARV),
+S("State two differences between a starved person",2,"A starved person is very thin and weak and tires quickly, unlike a person who eats well.",STARV),
+S("Explain why a child who is not fed properly may fall behind in class",2,"The child cannot concentrate or think well, tires quickly because the body and brain lack energy, and falls sick easily.",
+  "Finds it hard to concentrate, think or learn::concentrate,concentration,think,learn|Lacks energy because the brain is not supplied with fuel::energy,fuel,tires,tired,weak|Falls sick easily::sick,disease,infection,ill"),
+S("Define digestion and state the difference between mechanical and chemical",4,"Digestion is the breaking down of large, insoluble food molecules into small, soluble molecules. Mechanical digestion is chewing, which breaks food into smaller pieces. Chemical digestion is done by enzymes.",
+  DIG+"|Mechanical digestion is chewing that breaks food into smaller pieces::mechanical,chewing,smaller pieces,teeth|Chemical digestion is done by enzymes::chemical,enzyme,enzymes"),
+S("What is digestion",2,"Digestion is the breaking down of large, insoluble food molecules into small, soluble molecules that can pass into the blood.",DIG),
+S("Name the parts of the alimentary canal in the order",7,"Mouth, oesophagus, stomach, small intestine, large intestine, rectum, anus.",
+  "Mouth::mouth|Oesophagus::oesophagus,esophagus,food pipe|Stomach::stomach|Small intestine::small intestine|Large intestine::large intestine|Rectum::rectum|Anus::anus"),
+S("State two jobs of the stomach",2,"It churns the food and mixes it with gastric juice; the acid kills germs and pepsin begins the digestion of protein.",STOM),
+S("State two functions of the stomach",2,"It churns the food and mixes it with gastric juice; the acid kills germs and pepsin begins the digestion of protein.",STOM),
+S("Explain why bile is needed for the digestion of palm oil",2,"Bile breaks large fat droplets into tiny droplets (emulsification), so that the enzyme lipase can digest the oil.",
+  "Bile breaks large fat droplets into tiny droplets (emulsification)::droplets,emulsif,breaks|So that the enzyme lipase can digest the fat::lipase,enzyme,digest,surface"),
+S("State the end product of digestion of starch",4,"Starch gives glucose, protein gives amino acids, and fats and oils give fatty acids and glycerol.",FATE),
+S("Name the end products of the digestion of fats and oils",2,"Fatty acids and glycerol.","Fatty acids::fatty acids,fatty acid|Glycerol::glycerol"),
+S("Describe two features of a villus",2,"Its wall is only one cell thick; it contains a network of blood capillaries and a lacteal; there are millions of villi, which give a large surface area.",
+  "Its wall is only one cell thick::one cell thick,thin|It has blood capillaries and a lacteal::capillaries,capillary,lacteal|Millions of villi give a large surface area::surface area,millions,large"),
+S("Write down the test and the positive result for starch",2,"Add a few drops of iodine solution. The colour changes from orange-brown to blue-black.",
+  "Add iodine solution::iodine|The colour changes from orange-brown to blue-black::blue black,blue-black,black,blue"),
+S("Explain why large molecules such as starch must be digested",2,"Large starch, protein and fat molecules are too big to pass through the wall of the small intestine. Digestion changes them into small soluble molecules that can pass through into the blood.",
+  "Large molecules are too big to pass through the wall of the small intestine::too big,large,cannot pass,wall"),
+S("Name three nutrients found in food",3,"Any three of: carbohydrates, proteins, fats and oils, vitamins, mineral salts, water.",NUT),
+S("Name the enzyme in saliva",2,"Salivary amylase digests starch (into maltose).","Salivary amylase::amylase|It digests starch::starch"),
+S("Why is the small intestine the main site of absorption",2,"Its inside wall is covered with millions of villi that give a large surface area, and the villi have thin walls with blood capillaries and lacteals. It is also very long (about six metres).",
+  "Millions of villi give a large surface area::villi,surface area|The villi have thin walls, capillaries and lacteals::thin,one cell,capillar,lacteal|It is very long::long,six metres"),
+S("What happens to glucose after it enters the blood",2,"The blood carries it to the liver and then to all the cells of the body, where it is used to release energy.",
+  "The blood carries it to the liver and all the cells::liver,cells,carried,carries|It is used to release energy::energy,respiration"),
+S("State the positive result of the Benedict test for glucose",1,"The blue colour changes to green, yellow, orange or brick red.","Blue changes to green, yellow, orange or brick red::green,yellow,orange,brick red,red"),
+S("Kofi chews a piece of boiled cassava",2,"Cassava is rich in starch. Saliva contains salivary amylase, which begins to change starch into maltose, a sugar, so it tastes sweet.",BREAD),
+S("Chew a piece of bread for two minutes",2,"Bread is rich in starch. Salivary amylase in saliva changes the starch into maltose, a sugar, so the bread tastes sweeter.",BREAD),
+S("A learner eats groundnut soup with fufu",4,"The oil is not digested in the mouth or stomach. In the small intestine bile breaks it into tiny droplets (emulsification), the enzyme lipase digests it to fatty acids and glycerol, and these pass into the lacteals of the villi and then into the body.",
+  "The oil is not digested in the mouth or stomach::not digested,mouth,stomach|In the small intestine bile breaks the oil into tiny droplets::bile,droplets,emulsif|Lipase digests it to fatty acids and glycerol::lipase,fatty acids,glycerol|They are absorbed into the lacteals of the villi::lacteal,lacteals,villi,lymph,absorbed"),
+S("A farmer feeds his children mainly cassava and gari",2,"They may lack protein (also vitamins or mineral salts). Children lacking protein grow slowly, have weak muscles and repair damage slowly.",
+  "A nutrient they may lack, such as protein (or vitamins or mineral salts)::protein,proteins,vitamin,vitamins,mineral,minerals|An effect such as slow growth, weak muscles or slow repair::growth,weak,muscles,repair,sick,disease,thin"),
+S("A food sample is tested with iodine and Benedict",2,"The sample contains starch but no glucose.","It contains starch::starch|It does not contain glucose::glucose,no glucose,not contain"),
+S("A person has a problem with the gall bladder",2,"The gall bladder stores bile, which breaks fat into tiny droplets so that lipase can digest it. Without enough bile the fat is not emulsified and is hard to digest.",
+  "The gall bladder stores bile that goes to the small intestine::bile,gall bladder|Without bile, fat is not broken into tiny droplets, so lipase cannot digest it well::droplets,emulsif,fat,fats,lipase,digest"),
+]

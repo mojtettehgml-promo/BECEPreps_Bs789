@@ -136,6 +136,8 @@ export function createHandler(getS, env = {}) {
     const adminName = normUser(env.ADMIN_USERNAME || "");
     const get = (k) => store.get(k, { type: "json" });
     const set = (k, v) => store.setJSON(k, v);
+    // every value under a prefix, read in one go: [{ key, v }]
+    const vals = async (prefix) => { const { blobs } = await store.list({ prefix, values: true }); const out = []; for (const b of blobs) { const v = "value" in b ? b.value : await get(b.key); if (v != null) out.push({ key: b.key, v }); } return out; };
 
     // ---- rate limiting helpers
     async function limited(key, max, lockMs) {
@@ -234,7 +236,7 @@ export function createHandler(getS, env = {}) {
     if (action === "me") {
       const progress = me.role === "user" ? (await get("progress:" + me.username)) || {} : {};
       let pending = 0;
-      if (me.role === "admin") { const { blobs } = await store.list({ prefix: "user:" }); for (const b of blobs) { const u = await get(b.key); if (u && u.status === "pending") pending++; } }
+      if (me.role === "admin") { for (const { v: u } of await vals("user:")) if (u.status === "pending") pending++; }
       const t2 = me.role === "admin" ? await get("admin2fa") : null;
       let asgUnseen = 0;
       if (me.role === "user") { const { blobs } = await store.list({ prefix: "sub:" + me.username + ":" }); for (const b of blobs) { const m = await get(b.key); if (m && m.status === "marked" && !m.seen) asgUnseen++; } }
@@ -252,7 +254,7 @@ export function createHandler(getS, env = {}) {
 
     // ---------- lessons (everyone signed in reads; only the administrator writes)
     const lidx = async () => (await get("lidx")) || [];
-    const reindex = async () => { const { blobs } = await store.list({ prefix: "lesson:" }); const out = []; for (const b of blobs) { const l = await get(b.key); if (l) out.push(lmeta(l)); } out.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)); await set("lidx", out); return out; };
+    const reindex = async () => { const out = []; for (const { v: l } of await vals("lesson:")) out.push(lmeta(l)); out.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)); await set("lidx", out); return out; };
     if (action === "lessonList") {
       const all = await lidx();
       return json({ ok: true, lessons: me.role === "admin" ? all : all.filter((x) => x.status === "published") });
@@ -268,8 +270,8 @@ export function createHandler(getS, env = {}) {
     if (action === "imgGet") { const m = await get("img:" + clip(body.id, 40)); return m ? json({ ok: true, d: m.d }) : fail("Picture not found.", 404); }
     if (action === "subjectQs") {
       const sub = SUBJECTS.includes(body.subject) ? body.subject : ""; if (!sub) return fail("Choose a subject.");
-      const out = [];
-      for (const m of (await lidx()).filter((x) => x.subject === sub && x.status === "published" && (body.bank ? true : x.kind !== "bank") && (!LEVELS.includes(body.level) || x.level === body.level))) { const l = await get("lesson:" + m.id); if (l) l.questions.forEach((q, i) => { if (body.bank || q.t !== "st") out.push({ ...q, lid: l.id, qi: i, topic: l.topic || "" }); }); }
+      const out = [], want = new Set((await lidx()).filter((x) => x.subject === sub && x.status === "published" && (body.bank ? true : x.kind !== "bank") && (!LEVELS.includes(body.level) || x.level === body.level)).map((x) => x.id));
+      for (const { v: l } of await vals("lesson:")) { if (want.has(l.id)) l.questions.forEach((q, i) => { if (body.bank || q.t !== "st") out.push({ ...q, lid: l.id, qi: i, topic: l.topic || "" }); }); }
       return json({ ok: true, questions: out });
     }
 
@@ -281,7 +283,7 @@ export function createHandler(getS, env = {}) {
     }
     const asgPub = (a) => ({ id: a.id, title: a.title, subject: a.subject, instructions: a.instructions, max: a.max, due: a.due || "", closed: !!a.closed, createdAt: a.createdAt });
     const metaPub = (m) => m ? { status: m.status, pages: m.pages, at: m.at, late: !!m.late, score: m.status === "marked" ? m.score : null, feedback: m.status === "marked" || m.status === "returned" ? m.feedback || "" : "", markedAt: m.markedAt || null, seen: !!m.seen } : null;
-    const allAsg = async () => { const { blobs } = await store.list({ prefix: "asg:" }); const out = []; for (const b of blobs) { const a = await get(b.key); if (a) out.push(a); } return out.sort((x, y) => y.createdAt - x.createdAt); };
+    const allAsg = async () => { const out = []; for (const { v: a } of await vals("asg:")) out.push(a); return out.sort((x, y) => y.createdAt - x.createdAt); };
     if (me.role === "user" && ["asgList", "asgSubmit", "asgPages", "asgSeen"].includes(action)) {
       if (action === "asgList") {
         const out = [];
@@ -369,7 +371,9 @@ export function createHandler(getS, env = {}) {
     }
     if (action === "lessonDelete") {
       const id = clip(body.id, 40); if (!(await get("lesson:" + id))) return fail("Lesson not found.", 404);
-      await store.delete("lesson:" + id); await reindex(); return json({ ok: true });
+      await store.delete("lesson:" + id);
+      if (id.startsWith("b7-")) { const g = (await get("seedgone")) || []; if (!g.includes(id)) { g.push(id); await set("seedgone", g.slice(-3000)); } }
+      await reindex(); return json({ ok: true });
     }
     if (action === "lessonStatus") {
       const id = clip(body.id, 40), l = await get("lesson:" + id); if (!l) return fail("Lesson not found.", 404);
@@ -438,10 +442,10 @@ export function createHandler(getS, env = {}) {
     if (action === "exportAll") {
       const { blobs } = await store.list({ prefix: "user:" }); const users = [];
       for (const b of blobs) { const u = await get(b.key); if (!u) continue; const { pass, pwEnc, ...rest } = u; users.push({ ...rest, progress: (await get("progress:" + u.username)) || {} }); }
-      const asg = []; { const { blobs } = await store.list({ prefix: "asg:" }); for (const b of blobs) { const a = await get(b.key); if (a) asg.push(a); } }
-      const subs = []; { const { blobs } = await store.list({ prefix: "sub:" }); for (const b of blobs) { const m = await get(b.key); if (m) subs.push(m); } }
-      const lessons = []; { const { blobs } = await store.list({ prefix: "lesson:" }); for (const b of blobs) { const l = await get(b.key); if (l) lessons.push(l); } }
-      const images = []; { const { blobs } = await store.list({ prefix: "img:" }); for (const b of blobs) { const m = await get(b.key); if (m) images.push({ id: b.key.slice(4), d: m.d }); } }
+      const asg = (await vals("asg:")).map((x) => x.v);
+      const subs = (await vals("sub:")).map((x) => x.v);
+      const lessons = (await vals("lesson:")).map((x) => x.v);
+      const images = (await vals("img:")).map((x) => ({ id: x.key.slice(4), d: x.v.d }));
       return json({ ok: true, exportedAt: Date.now(), lessons, images, assignments: asg, submissions: subs, users, settings: (await get("settings")) || DEFAULT_SETTINGS });
     }
     if (action === "imgSave") {
@@ -450,6 +454,29 @@ export function createHandler(getS, env = {}) {
       const id = clip(body.id, 40).replace(/[^a-z0-9]/gi, "") || "i" + rid(5); await set("img:" + id, { d }); return json({ ok: true, id });
     }
     if (action === "imgDelete") { await store.delete("img:" + clip(body.id, 40)); return json({ ok: true }); }
+    if (action === "seedList") {
+      const sd = env.SEED; if (!sd) return json({ ok: true, parts: [] });
+      return json({ ok: true, parts: sd.index.map((x, n) => ({ n, title: x.title, lessons: x.lessons })) });
+    }
+    if (action === "seedAdd") {
+      // Built-in lessons: add only the ones that are not there yet. Never touch an existing lesson,
+      // and (unless asked) do not bring back a built-in lesson the admin deleted on purpose.
+      // Works in small batches so that a single request stays well inside the Worker's database-query allowance.
+      const sd = env.SEED, part = sd && sd.parts[parseInt(body.n, 10)]; if (!part) return fail("That part of the built-in lessons was not found.", 404);
+      const from = Math.max(0, parseInt(body.from, 10) || 0), STEP = 10, chunk = part.lessons.slice(from, from + STEP);
+      const have = new Set((await store.list({ prefix: "lesson:" })).blobs.map((x) => x.key.slice(7)));
+      const gone = new Set(body.includeDeleted ? [] : ((await get("seedgone")) || []));
+      let n = 0, already = 0, del = 0; const added = [], need = new Set();
+      for (const x of chunk) {
+        if (have.has(x.id)) { already++; continue; }
+        if (gone.has(x.id)) { del++; continue; }
+        const r = cleanLesson({ ...x }, null); if (r.out) { r.out.id = x.id; await set("lesson:" + x.id, r.out); n++; added.push(x.id); for (const pg of x.pages || []) for (const m of String(pg.body || "").matchAll(/\[\[img:([A-Za-z0-9]+)/g)) need.add(m[1]); }
+      }
+      if (added.length && body.includeDeleted) { const g = ((await get("seedgone")) || []).filter((i) => !added.includes(i)); await set("seedgone", g); }
+      if (need.size) { const haveImg = new Set((await store.list({ prefix: "img:" })).blobs.map((x) => x.key.slice(4))); for (const im of part.images || []) if (need.has(im.id) && !haveImg.has(im.id)) await set("img:" + im.id, { d: im.d }); }
+      if (n) await reindex();
+      return json({ ok: true, added: n, already, deleted: del, next: from + STEP < part.lessons.length ? from + STEP : null });
+    }
     if (action === "importLessons") {
       for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }
       const arr = Array.isArray(body.lessons) ? body.lessons : []; let n = 0;

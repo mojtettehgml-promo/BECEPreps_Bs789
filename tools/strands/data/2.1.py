@@ -1,0 +1,30 @@
+from common import S,X
+STAGES="Evaporation::evaporation|Transpiration::transpiration|Condensation::condensation|Precipitation::precipitation,rain,snow,hail|Collection or run off::collection,run off,runoff,run-off"
+WHY="Provides clean water::clean,fresh,drink,impurit|Carries nutrients::nutrient|Improves the water table (wells and boreholes)::water table,wells,boreholes,underground|Regulates weather patterns::weather,temperature,rainfall|Releases energy::energy"
+QA=[
+S("Name the five stages of the water cycle",5,"Evaporation, transpiration, condensation, precipitation, and collection or run off.",STAGES),
+S("What causes water to evaporate",1,"The heat of the sun.","Heat from the sun::sun,heat,sunlight,warm"),
+S("Explain, in your own words, why clouds form",2,"As water vapour rises it cools and changes back into tiny droplets of water. The droplets gather together to form clouds.",
+  "Water vapour rises and cools::rises,rise,cools,cool,cold|It condenses into tiny droplets that gather to form clouds::condens,droplet,droplets,gather,cloud,clouds"),
+S("Name three reasons why the water cycle is important",3,"It provides clean water, carries nutrients, improves the water table, regulates weather patterns and releases energy.",WHY),
+S("Give two reasons why the water cycle is important",2,"It provides clean water and carries nutrients (also: improves the water table, regulates weather, releases energy).",WHY),
+S("Explain how the water cycle helps to provide clean drinking water",2,"As water evaporates it leaves salt, dirt and other impurities behind, so the rain that falls is naturally clean fresh water that we can use.",
+  "Evaporation leaves salt, dirt and impurities behind::leaves,salt,dirt,impurit,evaporat|The rain that falls is clean fresh water to drink::clean,fresh,drink,naturally"),
+S("How does the water cycle affect farming",2,"Rain supplies water for crops, moving water carries nutrients to farmland, and rain that soaks into the ground refills the water table that feeds wells and boreholes.",
+  "Rain gives water to crops::rain,crops,plants,irrigat|Carries nutrients to farmland::nutrient,soil,farmland|Refills the water table, wells and boreholes::water table,wells,boreholes,underground"),
+S("What is the difference between evaporation and transpiration",2,"Evaporation is water turning to vapour from seas, rivers and lakes heated by the sun. Transpiration is water vapour lost from the leaves of plants.",
+  "Evaporation is liquid water from seas, rivers and lakes heated by the sun turning to vapour::sea,seas,rivers,lakes,sun,heat,heated,liquid|Transpiration is water vapour lost through the leaves of plants::plant,plants,leaves,leaf"),
+S("Explain what happens during condensation",2,"The water vapour rises and cools. It changes back into tiny droplets of liquid water, which gather to form clouds.",
+  "Water vapour rises and cools::rises,rise,cools,cool,cold|It changes back into tiny droplets of liquid water (clouds)::droplet,droplets,liquid,clouds,cloud,changes back"),
+S("A farmer notices that a nearby well",3,"Less rain means less water soaks into the ground, so the water table is not refilled. The water table falls and the well, which depends on it, dries up.",
+  "Less rainfall means less water soaks into the ground::less rain,rainfall,soak,dropped,reduced,drop|The water table is not refilled and falls::water table,refill,refilled,underground|So the well that depends on it dries up::well,wells,dry,dries,borehole"),
+S("You place a lid over a pot of boiling water",2,"This is condensation. The water vapour rising from the boiling water meets the cooler lid, cools down and changes back into droplets of water.",
+  "It is condensation::condensation,condens|The vapour cools on the cooler lid and turns back into droplets of water::cool,cools,cold,droplet,droplets,liquid"),
+S("A region has very few trees",3,"With fewer trees there is less transpiration, so less water vapour is added to the air. Less vapour means fewer clouds and less rainfall in the area.",
+  "Fewer trees means less transpiration::less transpiration,fewer,transpiration,reduced|Less water vapour goes into the air::vapour,less,reduced|So fewer clouds form and there is less rainfall::less rain,rainfall,fewer clouds,decrease,reduce,drier"),
+X("Think about the water cycle and its importance",
+  (5,"Evaporation, transpiration, condensation, precipitation, and collection or run off.",STAGES),
+  (2,"For example, condensation: water vapour cools and changes back into tiny droplets that form clouds.","Names a stage::evaporation,transpiration,condensation,precipitation,collection,run off|Explains what happens in it::vapour,heat,cools,droplets,falls,rain,gathers,leaves,clouds"),
+  (2,"It provides clean water for drinking and carries nutrients to farmland.",WHY),
+  (1,"For example, keep rivers and streams clean, avoid dumping waste in water, or plant trees.","Gives a sensible way to protect water sources::tree,trees,pollut,clean,litter,dump,waste,protect,river,forest")),
+]
