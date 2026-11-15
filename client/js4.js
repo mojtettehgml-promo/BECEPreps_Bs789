@@ -98,7 +98,7 @@ function bookQuestions(ql,kl){
   return{questions:out,skipped:sk}}
 async function bookToLessons(file,subject,level0){
   const{doc,images,skipped}=await readBookDoc(file),lines=bookMarkup(doc).split('\n');
-  const fm=file.name.match(/B(\d)_(\d+\.\d+)_(.+)\.docx$/i),level=fm?('b'+fm[1]):level0;
+  const fm=file.name.match(/B(\d)_(\d+\.\d+[a-z]?)_(.+)\.docx$/i),level=fm?('b'+fm[1]):level0;
   const meta=(lines.find(l=>l.startsWith('@@META '))||'').slice(7).replace(/^sub ?strand\s*/i,'').replace(/\s+/g,' ').trim();
   const topic=fm?fm[2]+' '+fm[3].replace(/_/g,' '):(meta||file.name.replace(/\.[^.]+$/,''));
   const body=lines.filter(l=>!l.startsWith('@@META '));
@@ -132,4 +132,75 @@ function bookPanelWire(ap,again){
         rep.push(`<b>${esc(r.topic)}</b> (${lvlName(r.level)}): ${ok} lessons saved as drafts, ${up} pictures${r.skippedPics?`, ${r.skippedPics} pictures could not be used`:''}. Left out: ${r.skippedQs.tf} true/false, ${r.skippedQs.syn} creative tasks${r.skippedQs.mcqNoKey?`, ${r.skippedQs.mcqNoKey} multiple-choice with no answer key`:''}.${bad.length?'<br>Problems: '+bad.map(esc).join('<br>'):''}`)}
       catch(e){rep.push(`<b>${esc(f.name)}</b>: could not be read (${esc(e.message||'error')})`)}}
     bm.innerHTML=`<div class="msg okm">${rep.join('<br><br>')}</div><div class="actions"><button class="btn primary" id="bd">Show my lessons</button></div>`;$('#bd').onclick=again;$('#bb').disabled=false}}
+/* ---- upload prepared questions: filed by class, subject and strand/topic ---- */
+const QTEMPLATE=`Class: Basic 8
+Subject: Integrated Science
+Strand: 4.2 Electricity and Electronics
+
+1. Which part of a circuit stores electrical charge for a short time?
+A. Resistor
+B. Capacitor
+C. Diode
+D. Switch
+Answer: B
+Explain: A capacitor stores electrical charge temporarily.
+
+Structured: A farmer uses a solar panel to charge a phone.
+(a) Name the energy change in the solar panel. [2]
+Answer: Light energy changes to electrical energy
+Ideas: light energy = light, sun, solar | changes to electrical = electrical, electricity
+(b) State one advantage of solar power. [1]
+Answer: It is renewable; it does not pollute
+
+Class: Basic 9
+Subject: Mathematics
+Strand: 1.1 Number
+
+1. What is 3 + 4?
+A. 5
+B. 6
+C. 7
+D. 8
+Answer: C
+`;
+const QLV=t=>{const m=String(t).match(/([789])/);return m?'b'+m[1]:null};
+const QSB=t=>{t=String(t).toLowerCase();return /sci/.test(t)?'sci':/math/.test(t)?'math':/\bga\b|ghanaian/.test(t)?'ga':/comput|ict/.test(t)?'comp':null};
+function qTopicFor(text,level,subject){text=String(text||'').trim();const have=[...new Set((S.lessons||[]).filter(l=>l.level===level&&l.subject===subject&&l.topic).map(l=>l.topic))];
+  const m=text.match(/^(\d+\.\d+[a-z]?)(?=\s|$)/i);if(m){const f=have.find(t=>t.toLowerCase().startsWith(m[1].toLowerCase())&&/^(\s|$)/.test(t.slice(m[1].length)));if(f)return f}
+  const f=have.find(t=>t.toLowerCase()===text.toLowerCase());return f||text}
+function parseQUpload(text,def){
+  const lines=String(text||'').replace(/\r/g,'').split('\n'),cur={level:def.level,subject:def.subject,topic:def.topic},buf=[],groups=[];
+  const push=()=>{if(buf.join('').trim()){const pq=parseQs(buf.join('\n'));groups.push({level:cur.level,subject:cur.subject,topic:cur.topic,qs:pq.qs,warn:pq.warn})}buf.length=0};
+  for(const raw of lines){const l=raw.trim();let m;
+    if((m=l.match(/^(?:class|level|year)\s*[:=]\s*(.+)$/i))){push();cur.level=QLV(m[1])||cur.level;continue}
+    if((m=l.match(/^subject\s*[:=]\s*(.+)$/i))){push();cur.subject=QSB(m[1])||cur.subject;continue}
+    if((m=l.match(/^(?:strand|sub-?strand|topic)\s*[:=]\s*(.+)$/i))){push();cur.topic=m[1].trim();continue}
+    buf.push(raw)}
+  push();const out=new Map();
+  groups.forEach(g=>{const topic=qTopicFor(g.topic,g.level,g.subject),k=g.level+'|'+g.subject+'|'+topic;if(!out.has(k))out.set(k,{level:g.level,subject:g.subject,topic,qs:[],warn:[]});const o=out.get(k);o.qs.push(...g.qs);o.warn.push(...g.warn)});
+  return[...out.values()]}
+function qUploadHtml(){return `<div class="panel"><h3>📥 Upload prepared questions</h3><p class="hint">Upload a Word (.docx) or text file of ready-made questions. Each question goes into the question bank of the <b>class, subject and strand</b> you choose, or the ones written inside the file (lines such as <i>Class: Basic 8</i>, <i>Subject: Integrated Science</i>, <i>Strand: 4.2</i>). Learners then get them mixed at random in practice, topic tests and challenges. Questions that are already there are skipped.</p>
+  <div class="two"><label class="f">Class<select id="ql">${LVL.map(l=>`<option value="${l[0]}" ${l[0]===S.level?'selected':''}>${l[1]}</option>`).join('')}</select></label><label class="f">Subject<select id="qs">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label></div>
+  <label class="f">Strand or topic (used when the file does not say)<input id="qt" list="qtl" placeholder="For example 4.2 Electricity and Electronics"><datalist id="qtl"></datalist></label>
+  <label class="f">Files (.docx or .txt), one or many<input type="file" id="qf" accept=".docx,.txt" multiple></label>
+  <label class="f">Or paste the questions here<textarea id="qp" rows="4" placeholder="1. Question…&#10;A. …&#10;B. …&#10;Answer: B"></textarea></label>
+  <div class="actions"><button class="btn primary" id="qc">Check the questions</button><button class="btn" id="qd">⬇ Blank template</button></div><div id="qm"></div></div>`}
+function qUploadWire(ap){
+  const fillTopics=()=>{const lv=$('#ql').value,sb=$('#qs').value;$('#qtl').innerHTML=[...new Set((S.lessons||[]).filter(l=>l.level===lv&&l.subject===sb&&l.topic).map(l=>l.topic))].sort().map(t=>`<option value="${esc(t)}">`).join('')};
+  $('#ql').onchange=fillTopics;$('#qs').onchange=fillTopics;fillTopics();
+  $('#qd').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([QTEMPLATE],{type:'text/plain'}));a.download='questions-template.txt';a.click()};
+  $('#qc').onclick=async()=>{const qm=$('#qm'),fs=[...$('#qf').files];let text=$('#qp').value||'';const def={level:$('#ql').value,subject:$('#qs').value,topic:$('#qt').value.trim()};
+    if(!fs.length&&!text.trim())return qm.innerHTML='<div class="msg err">Choose a file or paste some questions first.</div>';
+    const bad=[];let all=[];
+    for(const f of fs){try{const t=/\.docx$/i.test(f.name)?await readDocx(f):await f.text();all.push(...parseQUpload(t,def))}catch(e){bad.push(f.name+': '+(e.message||'could not be read'))}}
+    if(text.trim())all.push(...parseQUpload(text,def));
+    const m=new Map();all.forEach(g=>{const k=g.level+'|'+g.subject+'|'+g.topic;if(!m.has(k))m.set(k,{...g,qs:[...g.qs],warn:[...g.warn]});else{m.get(k).qs.push(...g.qs);m.get(k).warn.push(...g.warn)}});
+    const groups=[...m.values()],noTopic=groups.filter(g=>!g.topic&&(g.qs.length||g.warn.length)),ok=groups.filter(g=>g.topic&&g.qs.length);
+    if(!ok.length&&!noTopic.length&&!bad.length)return qm.innerHTML='<div class="msg err">No questions were found. Number each question (1. 2. 3.), put the options on lines A. B. C. D., and add a line “Answer: B”.</div>';
+    const row=g=>{const mc=g.qs.filter(q=>q.t==='mcq').length,st=g.qs.filter(q=>q.t==='st').length,fb=g.qs.filter(q=>q.t==='fib').length;return `<li><b>${lvlName(g.level)} · ${esc(subj(g.subject).title)} · ${esc(g.topic||'(no strand or topic)')}</b>: ${g.qs.length} question${g.qs.length===1?'':'s'} (${mc} multiple-choice, ${st} structured${fb?`, ${fb} fill-in`:''})${g.warn.length?`<br><span class="hint">Left out: ${g.warn.slice(0,6).map(esc).join('; ')}${g.warn.length>6?` and ${g.warn.length-6} more`:''}</span>`:''}</li>`};
+    qm.innerHTML=`<div class="msg okm"><ul style="margin:0;padding-left:18px">${groups.map(row).join('')}</ul>${bad.length?'<br>'+bad.map(esc).join('<br>'):''}${noTopic.length?'<br>Some questions have no strand or topic. Type one above or add a “Strand:” line to the file. They will not be saved.':''}</div>${ok.length?'<div class="actions"><button class="btn primary" id="qg">File these questions</button></div>':''}`;
+    const qg=$('#qg');if(qg)qg.onclick=async()=>{qg.disabled=true;let added=0,dup=0,rej=[];
+      try{for(const g of ok){for(let i=0;i<g.qs.length;i+=40){qm.innerHTML=`<div class="msg okm">Filing ${esc(g.topic)}… ${Math.min(i+40,g.qs.length)} of ${g.qs.length}</div>`;const x=await api('questionsAdd',{level:g.level,subject:g.subject,topic:g.topic,questions:g.qs.slice(i,i+40)});if(!x.ok)throw new Error(x.error||'Something went wrong.');added+=x.added;dup+=x.duplicates;rej.push(...x.rejected)}}
+        qm.innerHTML=`<div class="msg okm">Done. ${added} question${added===1?'':'s'} filed${dup?`, ${dup} skipped because they were already there`:''}${rej.length?`, ${rej.length} rejected: ${rej.slice(0,4).map(esc).join('; ')}`:''}.</div>`;const r2=await api('lessonList');if(r2.ok){S.lessons=r2.lessons;fillTopics()}}
+      catch(e){qm.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}}}
 boot();

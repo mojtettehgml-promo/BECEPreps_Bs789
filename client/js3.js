@@ -64,7 +64,7 @@ function parseQs(text){
   const flush=()=>{if(!cur)return;const c=cur;cur=null;
     if(c.t==='mcq'){const ci='ABCDE'.indexOf((c.ans||'').trim().charAt(0).toUpperCase());if(c.o.length<2)warn.push('Question "'+c.q.slice(0,40)+'" has fewer than 2 options.');else if(ci<0||ci>=c.o.length)warn.push('Question "'+c.q.slice(0,40)+'" has no Answer line.');else qs.push({t:'mcq',q:c.q.trim(),o:c.o.map(x=>x.trim()),c:ci,e:(c.e||'').trim()})}
     else if(c.t==='fib'){const q=blank(c.q.trim());if((q.match(/___/g)||[]).length!==1||!c.ans)warn.push('Fill-in "'+c.q.slice(0,40)+'" needs one blank and an Answer.');else qs.push({t:'fib',q,a:c.ans.trim(),e:(c.e||'').trim()})}
-    else{const parts=c.parts.map(p=>{const mm=p.q.match(/\[(\d{1,2})\]/),q=p.q.replace(/\[\d{1,2}\]/,'').trim();let m=mm?+mm[1]:0,a='',pts=[];const ans=(p.ans||'').trim();if(ans.includes(';')){pts=ans.split(';').map(x=>x.trim()).filter(Boolean);if(!m)m=pts.length}else{a=ans;if(!m)m=1}return{q,m,a,pts}});
+    else{const parts=c.parts.map(p=>{const mm=p.q.match(/\[(\d{1,2})\]/),q=p.q.replace(/\[\d{1,2}\]/,'').trim();let m=mm?+mm[1]:0,a='',pts=[];const ans=(p.ans||'').trim();if(ans.includes(';')){pts=ans.split(';').map(x=>x.trim()).filter(Boolean);if(!m)m=pts.length}else{a=ans;if(!m)m=1}return{q,m,a,pts,ideas:p.ideas||[]}});
       if(!parts.length||parts.some(p=>!p.q||(!p.a&&!p.pts.length)))warn.push('Structured "'+c.q.slice(0,40)+'" needs parts (a), (b)… each with an Answer.');else qs.push({t:'st',q:c.q.trim(),parts})}};
   for(const raw of lines){const l=raw.trim();if(!l)continue;let m;
     if((m=l.match(/^(?:fill|fib)\s*[:.\-]\s*(.*)$/i))){flush();const [q,a]=ansIn(m[1]);cur={t:'fib',q,ans:a};ctx='q';continue}
@@ -72,6 +72,7 @@ function parseQs(text){
     if(cur&&cur.t==='st'&&(m=l.match(/^\(([a-h])\)\s*(.*)$/i))){const [q,a]=ansIn(m[2]);cur.parts.push({q,ans:a});ctx='p';continue}
     if((m=l.match(/^(\d{1,3})[.)]\s+(.*)$/))&&!(cur&&cur.t==='st'&&false)){flush();cur={t:'mcq',q:m[2],o:[],ans:null};ctx='q';continue}
     if(cur&&cur.t==='mcq'&&(m=l.match(/^([A-E])[.)]\s+(.*)$/))){cur.o.push(m[2]);ctx='o';continue}
+    if(cur&&cur.t==='st'&&cur.parts.length&&(m=l.match(/^(?:key )?ideas\s*[:=]\s*(.*)$/i))){const p=cur.parts[cur.parts.length-1];p.ideas=m[1].split('|').map(x=>{const z=x.split(/\s*(?:=|::)\s*/);return{t:(z[0]||'').trim(),k:(z[1]||'').split(',').map(w=>w.trim()).filter(Boolean)}}).filter(x=>x.t&&x.k.length);ctx='i';continue}
     if(cur&&(m=l.match(/^(?:ans(?:wer)?|correct(?: answer)?)\s*[:.\-=]\s*(.*)$/i))){if(cur.t==='st'){const p=cur.parts[cur.parts.length-1];if(p)p.ans=m[1]}else cur.ans=m[1];ctx='a';continue}
     if(cur&&(m=l.match(/^(?:explain|explanation|why|note)\s*[:.\-]\s*(.*)$/i))){cur.e=m[1];ctx='e';continue}
     if(!cur)continue;
@@ -87,7 +88,7 @@ function autoFib(pages){
 async function adminLessons(ap){
   const r=await api('lessonList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
   S.lessons=r.lessons;
-  ap.innerHTML=`${bookPanelHtml()}<div class="panel"><h3>Add simple notes (Word or PDF)</h3><p class="hint">Upload a Word or PDF topic. It becomes a draft lesson split into reading pages (about 2 to 3). You then review it, add test questions and publish.</p>
+  ap.innerHTML=`${qUploadHtml()}${bookPanelHtml()}<div class="panel"><h3>Add simple notes (Word or PDF)</h3><p class="hint">Upload a Word or PDF topic. It becomes a draft lesson split into reading pages (about 2 to 3). You then review it, add test questions and publish.</p>
   <div class="two"><label class="f">Subject<select id="us">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label><label class="f">Word or PDF files<input type="file" id="uf" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple></label></div>
   <div class="actions"><button class="btn primary" id="ub">Create draft(s) from file(s)</button><button class="btn" id="nb">＋ Write a lesson by hand</button></div><div id="um"></div></div>
   ${SUBJ.map(s=>{const ls=r.lessons.filter(l=>l.subject===s.id);return `<div class="panel"><h3>${s.mas} ${s.title} (${ls.length})</h3>${ls.map(l=>`<div class="ucard"><div><b>${esc(l.emoji)} ${esc(l.title)}</b><span class="badge ${l.status==='published'?'':'d'}">${l.status}</span><div class="meta">${lvlName(l.level)} · ${esc(l.topic||'no topic')} · ${l.kind==='test'?'topic test':l.np+' card'+(l.np>1?'s':'')} · ${l.nq} question${l.nq===1?'':'s'} · order ${l.order}</div></div><div class="actions" style="margin:0"><button class="btn sm primary" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')||'<p class="hint">No lessons yet.</p>'}</div>`}).join('')}`;
@@ -100,7 +101,7 @@ async function adminLessons(ap){
     if(fs.length===1&&made.length===1)return lessonEditor(made[0],true);
     let ok=0;for(const L of made){const x=await api('lessonSave',L);if(x.ok)ok++;else bad.push(L.title+': '+x.error)}
     toast(ok+' draft'+(ok===1?'':'s')+' created');if(bad.length){adminLessons(ap);setTimeout(()=>{const u=$('#um');if(u)u.innerHTML=`<div class="msg err">${bad.map(esc).join('<br>')}</div>`},100)}else adminLessons(ap)};
-  bookPanelWire(ap,()=>adminLessons(ap));
+  bookPanelWire(ap,()=>adminLessons(ap));qUploadWire(ap);
   ap.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{const x=await api('lessonGet',{id:b.dataset.e});if(x.ok)lessonEditor(x.lesson)});
   ap.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{const x=await api('lessonStatus',{id:b.dataset.p,status:b.dataset.s});toast(x.ok?'Done':x.error);adminLessons(ap)});
   ap.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this lesson? This cannot be undone.'))return;const x=await api('lessonDelete',{id:b.dataset.d});toast(x.ok?'Deleted':x.error);adminLessons(ap)})}

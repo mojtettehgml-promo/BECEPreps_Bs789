@@ -18,7 +18,29 @@ import p16 from "./p16.json";
 import p17 from "./p17.json";
 import p18 from "./p18.json";
 import p19 from "./p19.json";
+import p20 from "./p20.json";
+import p21 from "./p21.json";
+import p22 from "./p22.json";
+import p23 from "./p23.json";
+import p24 from "./p24.json";
+import p25 from "./p25.json";
+import p26 from "./p26.json";
+import p27 from "./p27.json";
+import p28 from "./p28.json";
+import p29 from "./p29.json";
+import p30 from "./p30.json";
+import p31 from "./p31.json";
+import p32 from "./p32.json";
+import p33 from "./p33.json";
+import p34 from "./p34.json";
+import p35 from "./p35.json";
+import p36 from "./p36.json";
+import p37 from "./p37.json";
+import p38 from "./p38.json";
+import p39 from "./p39.json";
+import p40 from "./p40.json";
+import p41 from "./p41.json";
 export default {
-  index: [{"title": "1.1 Materials", "lessons": 12}, {"title": "1.2 Living Cells", "lessons": 10}, {"title": "2.1 Earth Science Water Cycle", "lessons": 6}, {"title": "2.2 Life Cycle of Organisms Housefly", "lessons": 8}, {"title": "2.3 Crop Production Plant Nutrients", "lessons": 10}, {"title": "2.4 Animal Production Domestic Animals", "lessons": 10}, {"title": "3.1 The Human Body System", "lessons": 21}, {"title": "3.2 The Solar System", "lessons": 13}, {"title": "3.3 Ecosystem", "lessons": 12}, {"title": "3.4 Farming Systems", "lessons": 25}, {"title": "4.1 Energy", "lessons": 31}, {"title": "4.2 Electricity and Electronics", "lessons": 24}, {"title": "4.3 Conversion and Conservation of Energy", "lessons": 14}, {"title": "4.4 Force and Motion", "lessons": 27}, {"title": "4.5 Agricultural Tools", "lessons": 13}, {"title": "5.1 Waste Management", "lessons": 10}, {"title": "5.2 Human Health", "lessons": 10}, {"title": "5.3 Science and Industry", "lessons": 11}, {"title": "5.4 Climate Change and Green Economy", "lessons": 13}, {"title": "5.5 Understanding the Environment", "lessons": 22}],
-  parts: [p00, p01, p02, p03, p04, p05, p06, p07, p08, p09, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19],
+  index: [{"title": "Basic 7 · 1.1 Materials", "lessons": 12}, {"title": "Basic 7 · 1.2 Living Cells", "lessons": 10}, {"title": "Basic 7 · 2.1 Earth Science Water Cycle", "lessons": 6}, {"title": "Basic 7 · 2.2 Life Cycle of Organisms Housefly", "lessons": 8}, {"title": "Basic 7 · 2.3 Crop Production Plant Nutrients", "lessons": 10}, {"title": "Basic 7 · 2.4 Animal Production Domestic Animals", "lessons": 10}, {"title": "Basic 7 · 3.1 The Human Body System", "lessons": 21}, {"title": "Basic 7 · 3.2 The Solar System", "lessons": 13}, {"title": "Basic 7 · 3.3 Ecosystem", "lessons": 12}, {"title": "Basic 7 · 3.4 Farming Systems", "lessons": 25}, {"title": "Basic 7 · 4.1 Energy", "lessons": 31}, {"title": "Basic 7 · 4.2 Electricity and Electronics", "lessons": 24}, {"title": "Basic 7 · 4.3 Conversion and Conservation of Energy", "lessons": 14}, {"title": "Basic 7 · 4.4 Force and Motion", "lessons": 27}, {"title": "Basic 7 · 4.5 Agricultural Tools", "lessons": 13}, {"title": "Basic 7 · 5.1 Waste Management", "lessons": 10}, {"title": "Basic 7 · 5.2 Human Health", "lessons": 10}, {"title": "Basic 7 · 5.3 Science and Industry", "lessons": 11}, {"title": "Basic 7 · 5.4 Climate Change and Green Economy", "lessons": 13}, {"title": "Basic 7 · 5.5 Understanding the Environment", "lessons": 22}, {"title": "Basic 8 · 1.1a Materials Mixtures", "lessons": 17}, {"title": "Basic 8 · 1.1b Materials Atoms", "lessons": 14}, {"title": "Basic 8 · 1.2 Living Cells", "lessons": 10}, {"title": "Basic 8 · 2.1 Carbon Cycle", "lessons": 10}, {"title": "Basic 8 · 2.2 Anopheles Mosquito", "lessons": 10}, {"title": "Basic 8 · 2.3 Crop Production Seed Beds", "lessons": 14}, {"title": "Basic 8 · 2.4 Animal Production Feed and Water", "lessons": 14}, {"title": "Basic 8 · 3.1 The Human Body System Teeth", "lessons": 15}, {"title": "Basic 8 · 3.2 The Solar System Outer Planets", "lessons": 9}, {"title": "Basic 8 · 3.3 Ecosystem Feeding Relationships", "lessons": 9}, {"title": "Basic 8 · 3.4 Farming Systems", "lessons": 10}, {"title": "Basic 8 · 4.1 Energy", "lessons": 17}, {"title": "Basic 8 · 4.2 Electricity and Electronics", "lessons": 7}, {"title": "Basic 8 · 4.3 Conversion and Conservation of Energy", "lessons": 4}, {"title": "Basic 8 · 4.4 Force and Motion", "lessons": 11}, {"title": "Basic 8 · 4.5 Agricultural Tools", "lessons": 7}, {"title": "Basic 8 · 5.1 Waste Management", "lessons": 7}, {"title": "Basic 8 · 5.2 Human Health", "lessons": 10}, {"title": "Basic 8 · 5.3 Science and Industry", "lessons": 4}, {"title": "Basic 8 · 5.4 Climate Change and Green Economy", "lessons": 7}, {"title": "Basic 8 · 5.5 Soils", "lessons": 8}, {"title": "Basic 8 · 5.6 Rocks and the Origin of Soils", "lessons": 4}],
+  parts: [p00, p01, p02, p03, p04, p05, p06, p07, p08, p09, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39, p40, p41],
 };

@@ -116,7 +116,6 @@ export function cleanLesson(b, old) {
   if (raw.length > 80) return { error: "At most 80 questions per lesson." };
   for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i], b.status !== "published"); if (r.error) return { error: "Question " + (i + 1) + ": " + r.error }; qs.push(r.out); }
   const status = b.status === "published" ? "published" : "draft";
-  if (status === "published" && kind !== "learn" && !qs.length) return { error: "Add at least one question before publishing." };
   const L = { id: old ? old.id : clip(b.id, 40) || "l" + rid(5), subject, level, topic: clip(b.topic, 80), kind, title, emoji: clip(b.emoji, 4) || "📘", order: Math.max(0, Math.min(9999, Math.floor(Number(b.order)) || 0)), status, pages, questions: qs, source: clip(b.source, 200), updatedAt: Date.now() };
   if (JSON.stringify(L).length > 400000) return { error: "This lesson is too large." };
   return { out: L };
@@ -372,13 +371,12 @@ export function createHandler(getS, env = {}) {
     if (action === "lessonDelete") {
       const id = clip(body.id, 40); if (!(await get("lesson:" + id))) return fail("Lesson not found.", 404);
       await store.delete("lesson:" + id);
-      if (id.startsWith("b7-")) { const g = (await get("seedgone")) || []; if (!g.includes(id)) { g.push(id); await set("seedgone", g.slice(-3000)); } }
+      if (/^b[789]-/.test(id)) { const g = (await get("seedgone")) || []; if (!g.includes(id)) { g.push(id); await set("seedgone", g.slice(-3000)); } }
       await reindex(); return json({ ok: true });
     }
     if (action === "lessonStatus") {
       const id = clip(body.id, 40), l = await get("lesson:" + id); if (!l) return fail("Lesson not found.", 404);
       const st = body.status === "published" ? "published" : "draft";
-      if (st === "published" && !l.questions.length) return fail("Add at least one test question before publishing.");
       l.status = st; l.updatedAt = Date.now(); await set("lesson:" + id, l); await reindex(); return json({ ok: true });
     }
 
@@ -477,6 +475,28 @@ export function createHandler(getS, env = {}) {
       if (need.size) { const haveImg = new Set((await store.list({ prefix: "img:" })).blobs.map((x) => x.key.slice(4))); for (const im of part.images || []) if (need.has(im.id) && !haveImg.has(im.id)) await set("img:" + im.id, { d: im.d }); }
       if (n || upd) await reindex();
       return json({ ok: true, added: n, updated: upd, already, deleted: del, next: from + STEP < part.lessons.length ? from + STEP : null });
+    }
+    if (action === "questionsAdd") {
+      // Prepared questions are filed into the question bank of the right class, subject and strand/topic.
+      // They are stored in bank lessons (at most 80 questions each); duplicates are skipped.
+      const subject = SUBJECTS.includes(body.subject) ? body.subject : "", level = LEVELS.includes(body.level) ? body.level : "";
+      const topic = clip(body.topic, 80); if (!subject || !level || !topic) return fail("Choose the class, the subject and the strand or topic.");
+      const raw = (Array.isArray(body.questions) ? body.questions : []).slice(0, 60), good = [], rejected = [];
+      for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i], false); if (r.error) rejected.push(clip(raw[i] && raw[i].q, 50) + ": " + r.error); else good.push(r.out); }
+      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "topic", pre = "bk-" + level + "-" + subject + "-" + slug + "-";
+      const banks = (await vals("lesson:" + pre)).map((x) => x.v).sort((a, b) => a.id.localeCompare(b.id));
+      const seen = new Set(); for (const b of banks) for (const q of b.questions) seen.add(normQ(q.q));
+      const fresh = []; let dup = 0; for (const q of good) { const k = normQ(q.q); if (seen.has(k)) { dup++; continue; } seen.add(k); fresh.push(q); }
+      let last = banks[banks.length - 1];
+      const mk = (n) => ({ id: pre + String(n).padStart(2, "0"), subject, level, topic, kind: "bank", title: "Question bank: " + topic + (n > 1 ? " (" + n + ")" : ""), emoji: "🎯", order: 900 + n, status: "published", pages: [], questions: [], source: "Uploaded questions" });
+      const touched = new Map(); if (last) touched.set(last.id, last);
+      for (const q of fresh) {
+        if (!last || last.questions.length >= 80) { const n = last ? parseInt(last.id.slice(pre.length), 10) + 1 : 1; if (n > 99) break; last = mk(n); }
+        last.questions.push(q); touched.set(last.id, last);
+      }
+      for (const b of touched.values()) { const r = cleanLesson({ ...b }, null); if (r.out) { r.out.id = b.id; await set("lesson:" + b.id, r.out); } }
+      if (touched.size) await reindex();
+      return json({ ok: true, added: fresh.length, duplicates: dup, rejected });
     }
     if (action === "importLessons") {
       for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }

@@ -136,3 +136,6 @@ main.wrap{padding-bottom:110px}
 .rich table{display:table;width:100%;overflow:visible;table-layout:auto}.rich td,.rich th{min-width:0!important;padding:8px 7px;font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}.rich td:first-child,.rich th:first-child{width:auto}
 .rich table{min-width:0!important}
 .rich td,.rich th{overflow-wrap:break-word!important;word-break:normal!important;hyphens:none}.rich td:first-child,.rich th:first-child{min-width:7.5em!important}
+
+.sotop{position:fixed;top:max(8px,env(safe-area-inset-top));right:10px;z-index:80;background:rgba(255,255,255,.92);color:#b3261e;border:2px solid #f3c4c0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.18);cursor:pointer}
+[data-theme=dark] .sotop{background:rgba(30,30,40,.92);color:#ff9d96;border-color:#5a2f2c}

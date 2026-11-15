@@ -1,4 +1,4 @@
-const APP_VERSION='v1.3.1',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.4.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -92,9 +92,10 @@ async function boot(){
   if(r.role==='user')setTheme(r.theme||'sunny');else setTheme('sunny');
   if(S.role==='admin')return adminHome();
   touchStreak();queueSave();home()}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('.sotop')&&confirm('Sign out now?'))signOut()});
 async function signOut(){await saveNow();await api('logout');signOutLocal();showAuth()}
 /* ---- shell ---- */
-function nav(active){const n=S.asgUnseen||0;return `<nav class="bnav" aria-label="Main"><button data-go="home" class="${active==='home'?'on':''}"><span class="em">🏠</span>Home</button><button data-go="asg" class="${active==='asg'?'on':''}"><span class="em">📬</span>Homework${n?`<span class="dot">${n}</span>`:''}</button><button data-go="me" class="${active==='me'?'on':''}"><span class="em">⚙️</span>Me</button></nav>`}
+function nav(active){const n=S.asgUnseen||0;return `<button class="sotop" type="button" aria-label="Sign out">🚪 Sign out</button><nav class="bnav" aria-label="Main"><button data-go="home" class="${active==='home'?'on':''}"><span class="em">🏠</span>Home</button><button data-go="asg" class="${active==='asg'?'on':''}"><span class="em">📬</span>Homework${n?`<span class="dot">${n}</span>`:''}</button><button data-go="me" class="${active==='me'?'on':''}"><span class="em">⚙️</span>Me</button></nav>`}
 function wireNav(){app.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{stopSpeak();const g=b.dataset.go;g==='home'?home():g==='asg'?assignments():me()})}
 function firstName(){return (S.fullName||S.username).split(/\s+/)[0]}
 async function loadLessons(){const r=await api('lessonList');S.lessons=r.ok?r.lessons:[];return r.ok}

@@ -84,7 +84,7 @@ async function lessonTest(L){
 async function mock(sid){
   const r=await api('subjectQs',{subject:sid,level:S.level});if(!r.ok)return toast(r.error);
   if(r.questions.length<5)return toast('Not enough questions yet. Finish a few lessons first!');
-  const items=shuffle(r.questions).slice(0,S.settings.mockq).map(q=>({k:q.t,q,lid:q.lid})),s=subj(sid);
+  const items=shuffle(r.questions).slice(0,S.settings.mockq).map(q=>({k:q.t,q:q.t==='mcq'?shufMcq(q):q,lid:q.lid})),s=subj(sid);
   if(!confirm(`Subject challenge: ${items.length} questions in ${S.settings.mockt} minutes. Ready?`))return;
   runQuiz({items,instant:false,timer:S.settings.mockt*60,onExit:()=>subject(sid),onDone:res=>{
     const c=res.filter(x=>x.ok).length,n=items.length,pct=Math.round(100*c/n),m=(P().mock=P().mock||{}),old=m[sid]||{},before=starsTotal();
@@ -111,7 +111,7 @@ async function bank(sid){
   const pick=(list,n)=>{const g=[[],[],[]];list.forEach(q=>g[rank(q)].push(q));return [].concat(...g.map(shuffle)).slice(0,n)};
   const mc=all.filter(q=>q.t==='mcq'),st=all.filter(q=>q.t==='st');
   let nst=Math.min(st.length,mc.length?Math.round(N*0.2):N),nmc=Math.min(mc.length,N-nst);nst=Math.min(st.length,N-nmc);
-  const items=shuffle([...pick(mc,nmc).map(q=>({k:'mcq',q,lid:q.lid})),...pick(st,nst).map(q=>({k:'st',q,lid:q.lid}))]);
+  const items=shuffle([...pick(mc,nmc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),...pick(st,nst).map(q=>({k:'st',q,lid:q.lid}))]);
   const before=starsTotal();
   runQuiz({items,instant:true,onExit:()=>subject(sid),onDone:res=>{
     res.forEach(x=>{const full=x.it.k==='st'?x.s>=x.t:x.ok;bankSeen()[qid(x.it.lid,x.it.q)]=full?1:0});
