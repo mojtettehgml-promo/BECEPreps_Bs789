@@ -1,6 +1,14 @@
 # BECE Prep Zone — v1.2.1 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
+## v1.4.0 — Basic 8, question upload, easier sign-out
+- 218 Basic 8 Integrated Science lessons (22 topics, Strands 1–5) are built in. Settings & backup → Add the built-in lessons (or Update).
+- New: Lessons tab → **Upload prepared questions** (Word or text). Questions are filed by class, subject and strand/topic and mixed at random for learners. Download the blank template there.
+- Learners now have a **Sign out** button at the top of every main screen.
+- A lesson can be published even when it has no questions of its own.
+- Multiple-choice options are now shuffled in subject challenges and practice too.
+- Rebuild the Basic 8 seed with `python3 tools/strands/parse_lessonbook.py` (4 and 5) and `python3 tools/strands/make_seed.py`.
+
 ## v1.3.1 — fixed notes
 - Built-in lessons rebuilt from the corrected Basic 7 notes: 302 lessons (new sections such as changes of state, cells to organisms, the enzymes of digestion, compost, magnets, goitre) and 38 new written questions with model answers and key ideas.
 - Lesson ids from v1.3.0 are kept, so lessons already in an app are recognised.
