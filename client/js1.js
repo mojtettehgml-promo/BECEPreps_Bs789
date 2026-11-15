@@ -1,9 +1,9 @@
-const APP_VERSION='v1.4.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.5.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
 const SUBJ=[{id:'sci',title:'Integrated Science',mas:'🔬',c1:'#0f9d58',c2:'#34d3a0',desc:'Explore how the world works!'},{id:'math',title:'Mathematics',mas:'🧮',c1:'#e8477a',c2:'#ff9a5a',desc:'Numbers, shapes and puzzles!'},{id:'ga',title:'Ghanaian Language (Ga)',mas:'🥁',c1:'#6d3fe0',c2:'#b07cff',desc:'Speak, read and write Ga!'},{id:'comp',title:'Computing',mas:'💻',c1:'#0ea5e9',c2:'#6366f1',desc:'Computers, coding and the digital world!'}];
-const LVL=[['b7','Basic 7'],['b8','Basic 8'],['b9','Basic 9']],lvlName=id=>(LVL.find(l=>l[0]===id)||LVL[0])[1];
+const LVL=[['b7','JHS 1'],['b8','JHS 2'],['b9','JHS 3']],lvlName=id=>(LVL.find(l=>l[0]===id)||LVL[0])[1];
 const subj=id=>SUBJ.find(s=>s.id===id)||SUBJ[0];
 const $=s=>document.querySelector(s),app=document.getElementById('app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -72,7 +72,7 @@ function showAuth(note){
     <div class="panel"><div class="tabs" role="tablist"><button class="${tab==='in'?'on':''}" data-t="in">Sign in</button><button class="${tab==='up'?'on':''}" data-t="up">New learner</button></div>
     ${note?`<div class="msg err">${esc(note)}</div>`:''}
     ${tab==='in'?`<form id="f"><label class="f">Username<input id="u" autocomplete="username" autocapitalize="none" required></label><label class="f">Password<input id="p" type="password" autocomplete="current-password" required></label>${need?'<label class="f">6-digit code (administrator)<input id="c" inputmode="numeric" autocomplete="one-time-code"></label>':''}<div class="actions"><button class="btn primary big" style="width:100%">Let's go! 🚀</button></div><p class="hint" style="text-align:center"><button type="button" class="link" id="fg">Forgot my password</button></p></form>`
-    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Class<select id="lv">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
+    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Your year (you will see only your own year's lessons)<select id="lv">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
     <div id="m">${msg?`<div class="msg ${cls}">${esc(msg)}</div>`:''}</div></div><p class="hint" style="text-align:center">${APP_NAME} ${APP_VERSION}</p></div></div>`;
     app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;note='';need=false;paint()});
     const fg=$('#fg');if(fg)fg.onclick=async()=>{const u=$('#u').value.trim();if(!u)return paint('Type your username first, then press this again.','err');await api('requestReset',{username:u});paint('Your teacher has been told. They will give you a new password.','okm')};
@@ -88,7 +88,7 @@ function showAuth(note){
 async function boot(){
   if(!S.token)return showAuth();
   const r=await api('me');if(!r.ok){if(!S.token)return;return showAuth(r.error)}
-  if(r.level){S.level=r.level;lsSet('bpz_lv',r.level)}Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
+  if(r.level){S.level=r.level;lsSet('bpz_lv',r.level)}S.year=r.year||r.level||'b7';Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
   if(r.role==='user')setTheme(r.theme||'sunny');else setTheme('sunny');
   if(S.role==='admin')return adminHome();
   touchStreak();queueSave();home()}
@@ -104,7 +104,7 @@ const EM=['🌟','🔎','💡','🧪','🚀','🎯','🌈','🧩'];
 const lvlOf=l=>l.level||'b7';
 const mine=()=>S.lessons.filter(l=>lvlOf(l)===S.level);
 const doneL=l=>!!((P().lessons||{})[l.id]&&P().lessons[l.id].read);
-function levelPills(){return `<div class="pills" role="tablist" aria-label="Class">${LVL.map(l=>`<button class="pill ${S.level===l[0]?'on':''}" data-lv="${l[0]}">${l[1]}</button>`).join('')}</div>`}
+function levelPills(){if(S.role==='user'&&S.year!=='b9')return `<div class="pills"><span class="pill on" style="cursor:default">🎓 ${lvlName(S.year||S.level)}</span></div>`;return `<div class="pills" role="tablist" aria-label="Class">${LVL.map(l=>`<button class="pill ${S.level===l[0]?'on':''}" data-lv="${l[0]}">${l[1]}</button>`).join('')}</div>`}
 function wireLevel(after){app.querySelectorAll('[data-lv]').forEach(b=>b.onclick=async()=>{S.level=b.dataset.lv;lsSet('bpz_lv',S.level);api('setLevel',{level:S.level});after()})}
 async function home(){
   window.scrollTo(0,0);stopSpeak();document.body.style.paddingBottom='70px';
@@ -124,11 +124,11 @@ async function subject(id){
   app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${lvlName(S.level)} · ${total?`${tp.length} topic${tp.length>1?'s':''}, ${total} mini-lessons`:s.desc}</p></div></div></div></header>
   <main class="wrap">${levelPills()}${tp.length?tp.map((t,ti)=>{const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0;return `<details class="topic" data-t="${esc(t.t)}" ${OPEN_T.has(t.t)?'open':''}><summary><span class="tdot" style="background:linear-gradient(130deg,${s.c1},${s.c2})">${dn===t.learn.length&&t.learn.length?'✓':ti+1}</span><span class="ttxt"><b>${esc(t.t)}</b><small>${dn}/${t.learn.length} done${t.test.length?' · topic test':''}</small><span class="tbar"><i style="width:${pct}%"></i></span></span></summary>
   <div class="path">${t.learn.map((l,i)=>{const r=(P().lessons||{})[l.id]||{};return `<button class="step ${r.read?'read':''}" data-l="${l.id}"><span class="sno">${r.read?'✓':esc(l.emoji||EM[i%EM.length])}</span><span class="stx"><b>${esc(l.title)}</b><small>${l.np} card${l.np>1?'s':''} · about ${Math.max(1,l.np)} min${l.nq?` · quick check`:''}</small></span></button>`}).join('')}
-  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`
-  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div>`}</main>${nav('home')}`;
+  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`+`<div id="exw"></div>`
+  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div><div id="exw"></div>`}</main>${nav('home')}`;
   wireNav();wireLevel(()=>{OPEN_T.clear();subject(id)});$('#bk').onclick=home;
   app.querySelectorAll('details.topic').forEach(d=>d.ontoggle=()=>{d.open?OPEN_T.add(d.dataset.t):OPEN_T.delete(d.dataset.t)});
-  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}}
+  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}examInfo(id)}
 /* ---- lesson reader: short, colourful cards ---- */
 const CARD=['#6d3fe0','#e8477a','#0a9b7a','#e07a00','#0b6fc2','#b01e95'];
 async function openLesson(id,pg){

@@ -1,6 +1,14 @@
 # BECE Prep Zone — v1.2.1 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
+## v1.5.0: JHS 1, 2 and 3 and exam papers
+
+- Learners choose **JHS 1, JHS 2 or JHS 3** when they sign up. JHS 1 and JHS 2 learners see only the lessons, questions and exams for their own year. JHS 3 learners (preparing for the exam) can open every year.
+- The admin can move a learner up a year from **Learners > Change year**.
+- New **Exams** tab (admin): choose the year, subject and paper name, then upload a Word or text file or paste the questions. They appear on the subject page as **Exam practice**, mixed at random. Files can carry `Class:`, `Subject:` and `Paper:` header lines.
+- Internal ids are unchanged: JHS 1 = b7, JHS 2 = b8, JHS 3 = b9. Existing learners keep the year they chose before.
+- Only `src/core.mjs`, `public/index.html`, `package.json` and `README.md` changed. `src/seed` is untouched.
+
 ## v1.4.0 — Basic 8, question upload, easier sign-out
 - 218 Basic 8 Integrated Science lessons (22 topics, Strands 1–5) are built in. Settings & backup → Add the built-in lessons (or Update).
 - New: Lessons tab → **Upload prepared questions** (Word or text). Questions are filed by class, subject and strand/topic and mixed at random for learners. Download the blank template there.

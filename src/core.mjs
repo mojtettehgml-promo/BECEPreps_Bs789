@@ -4,6 +4,9 @@ import crypto from "node:crypto";
 
 const SUBJECTS = ["sci", "math", "ga", "comp"];
 const LEVELS = ["b7", "b8", "b9"];
+// A learner belongs to one year (JHS 1 = b7, JHS 2 = b8, JHS 3 = b9). JHS 3 learners, who are preparing for the exam, may see every year.
+const yearOf = (u) => (u && LEVELS.includes(u.year) ? u.year : u && LEVELS.includes(u.level) ? u.level : "b7");
+const allowedFor = (me) => (me.role === "admin" || yearOf(me.user) === "b9" ? LEVELS : [yearOf(me.user)]);
 const SESSION_MS = 7 * 24 * 3600 * 1000, ADMIN_SESSION_MS = 12 * 3600 * 1000;
 const DEFAULT_SETTINGS = { mockq: 30, mockt: 45 };
 const THEMES = ["sunny", "candy", "ocean", "jungle"];
@@ -109,7 +112,7 @@ export function cleanQuestion(p, draft = false) {
 export function cleanLesson(b, old) {
   const subject = SUBJECTS.includes(b.subject) ? b.subject : ""; if (!subject) return { error: "Choose a subject." };
   const title = clip(b.title, 120); if (!title) return { error: "Enter a title." };
-  const kind = b.kind === "test" ? "test" : b.kind === "bank" ? "bank" : "learn", level = LEVELS.includes(b.level) ? b.level : "b7";
+  const kind = b.kind === "test" ? "test" : b.kind === "bank" ? "bank" : b.kind === "exam" ? "exam" : "learn", level = LEVELS.includes(b.level) ? b.level : "b7";
   const pages = (Array.isArray(b.pages) ? b.pages : []).slice(0, 8).map((x) => ({ title: clip(x && x.title, 120), body: clip(x && x.body, 12000) })).filter((x) => x.body);
   if (kind === "learn" && !pages.length) return { error: "Add at least one reading page." };
   const qs = [], raw = Array.isArray(b.questions) ? b.questions : [];
@@ -181,7 +184,7 @@ export function createHandler(getS, env = {}) {
       if (!validPhone(phone)) return fail("Enter a valid phone number (9 to 15 digits).");
       if (username === adminName) return fail("That username is not available.");
       if (await get("user:" + username)) return fail("That username is already taken.");
-      const user = { username, phone, phoneKey: phoneKey(phone), pass: hashPw(password), pwEnc: encPw(password, env), pe: 0, status: "active", createdAt: Date.now(), lastLogin: Date.now(), theme: "sunny", fullName, level };
+      const user = { username, phone, phoneKey: phoneKey(phone), pass: hashPw(password), pwEnc: encPw(password, env), pe: 0, status: "active", createdAt: Date.now(), lastLogin: Date.now(), theme: "sunny", fullName, level, year: level };
       user.status = "pending";
       await set("user:" + username, user);
       return json({ ok: true, pending: true });
@@ -239,7 +242,7 @@ export function createHandler(getS, env = {}) {
       const t2 = me.role === "admin" ? await get("admin2fa") : null;
       let asgUnseen = 0;
       if (me.role === "user") { const { blobs } = await store.list({ prefix: "sub:" + me.username + ":" }); for (const b of blobs) { const m = await get(b.key); if (m && m.status === "marked" && !m.seen) asgUnseen++; } }
-      return json({ ok: true, username: me.username, role: me.role, fullName: me.user?.fullName || "", level: me.user?.level || "b7", theme: me.user?.theme || "sunny", progress, pe: me.user?.pe || 0, pending, asgUnseen, twoStep: !!(t2 && t2.enabled), vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
+      return json({ ok: true, username: me.username, role: me.role, fullName: me.user?.fullName || "", level: (me.role === "admin" ? (me.user?.level || "b7") : (allowedFor(me).includes(me.user?.level) ? me.user.level : yearOf(me.user))), year: me.role === "admin" ? "b9" : yearOf(me.user), theme: me.user?.theme || "sunny", progress, pe: me.user?.pe || 0, pending, asgUnseen, twoStep: !!(t2 && t2.enabled), vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
     }
 
     if (action === "saveState" && me.role === "user") {
@@ -256,21 +259,34 @@ export function createHandler(getS, env = {}) {
     const reindex = async () => { const out = []; for (const { v: l } of await vals("lesson:")) out.push(lmeta(l)); out.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)); await set("lidx", out); return out; };
     if (action === "lessonList") {
       const all = await lidx();
-      return json({ ok: true, lessons: me.role === "admin" ? all : all.filter((x) => x.status === "published") });
+      const okL = allowedFor(me);
+      return json({ ok: true, lessons: me.role === "admin" ? all : all.filter((x) => x.status === "published" && x.kind !== "exam" && okL.includes(x.level || "b7")) });
     }
     if (action === "lessonGet") {
       const l = await get("lesson:" + clip(body.id, 40));
-      if (!l || (me.role !== "admin" && l.status !== "published")) return fail("Lesson not found.", 404);
+      if (!l || (me.role !== "admin" && (l.status !== "published" || l.kind === "exam" || !allowedFor(me).includes(l.level || "b7")))) return fail("Lesson not found.", 404);
       return json({ ok: true, lesson: l });
     }
     if (action === "setLevel" && me.role === "user") {
-      if (!LEVELS.includes(body.level)) return fail("Choose Basic 7, 8 or 9."); me.user.level = body.level; await set("user:" + me.username, me.user); return json({ ok: true });
+      if (!allowedFor(me).includes(body.level)) return fail("That year is not open to you."); me.user.level = body.level; await set("user:" + me.username, me.user); return json({ ok: true });
     }
     if (action === "imgGet") { const m = await get("img:" + clip(body.id, 40)); return m ? json({ ok: true, d: m.d }) : fail("Picture not found.", 404); }
     if (action === "subjectQs") {
       const sub = SUBJECTS.includes(body.subject) ? body.subject : ""; if (!sub) return fail("Choose a subject.");
-      const out = [], want = new Set((await lidx()).filter((x) => x.subject === sub && x.status === "published" && (body.bank ? true : x.kind !== "bank") && (!LEVELS.includes(body.level) || x.level === body.level)).map((x) => x.id));
+      const okQ = allowedFor(me), lvQ = LEVELS.includes(body.level) && okQ.includes(body.level) ? body.level : (me.role === "admin" ? "" : yearOf(me.user));
+      const out = [], want = new Set((await lidx()).filter((x) => x.subject === sub && x.status === "published" && x.kind !== "exam" && (body.bank ? true : x.kind !== "bank") && (!lvQ || x.level === lvQ)).map((x) => x.id));
       for (const { v: l } of await vals("lesson:")) { if (want.has(l.id)) l.questions.forEach((q, i) => { if (body.bank || q.t !== "st") out.push({ ...q, lid: l.id, qi: i, topic: l.topic || "" }); }); }
+      return json({ ok: true, questions: out });
+    }
+
+    if (action === "examList") {
+      const okL = allowedFor(me);
+      return json({ ok: true, papers: (await lidx()).filter((x) => x.kind === "exam" && x.status === "published" && okL.includes(x.level || "b7")).map((x) => ({ id: x.id, subject: x.subject, level: x.level, paper: x.topic, n: x.nq })) });
+    }
+    if (action === "examQs") {
+      const sub = SUBJECTS.includes(body.subject) ? body.subject : ""; if (!sub) return fail("Choose a subject.");
+      const okL = allowedFor(me), lv = LEVELS.includes(body.level) && okL.includes(body.level) ? body.level : yearOf(me.user), paper = clip(body.paper, 80), out = [];
+      for (const { v: l } of await vals("lesson:ex-")) { if (l.kind === "exam" && l.status === "published" && l.subject === sub && (l.level || "b7") === lv && (!paper || l.topic === paper)) l.questions.forEach((q, i) => out.push({ ...q, lid: l.id, qi: i, topic: l.topic || "" })); }
       return json({ ok: true, questions: out });
     }
 
@@ -396,7 +412,7 @@ export function createHandler(getS, env = {}) {
         const u = await get(b.key); if (!u) continue;
         const p = (await get("progress:" + u.username)) || {};
         const dp = decPw(u.pwEnc, env); if (dp.legacy && vaultKey(env)) { u.pwEnc = encPw(dp.pw, env); await set(b.key, u); }
-        users.push({ username: u.username, fullName: u.fullName || "", phone: u.phone, pw: dp.pw, resetReq: u.resetReq || null, status: u.status, createdAt: u.createdAt, lastLogin: u.lastLogin, theme: u.theme, level: u.level || "b7", stars: p.stars || 0, lessonsDone: Object.keys(p.lessons || {}).length, streak: (p.streak && p.streak.n) || 0 });
+        users.push({ username: u.username, fullName: u.fullName || "", phone: u.phone, pw: dp.pw, resetReq: u.resetReq || null, status: u.status, createdAt: u.createdAt, lastLogin: u.lastLogin, theme: u.theme, level: u.level || "b7", year: yearOf(u), stars: p.stars || 0, lessonsDone: Object.keys(p.lessons || {}).length, streak: (p.streak && p.streak.n) || 0 });
       }
       users.sort((a, b) => b.createdAt - a.createdAt);
       return json({ ok: true, users, vaultSet: !!vaultKey(env), settings: { ...DEFAULT_SETTINGS, ...((await get("settings")) || {}) } });
@@ -483,12 +499,12 @@ export function createHandler(getS, env = {}) {
       const topic = clip(body.topic, 80); if (!subject || !level || !topic) return fail("Choose the class, the subject and the strand or topic.");
       const raw = (Array.isArray(body.questions) ? body.questions : []).slice(0, 60), good = [], rejected = [];
       for (let i = 0; i < raw.length; i++) { const r = cleanQuestion(raw[i], false); if (r.error) rejected.push(clip(raw[i] && raw[i].q, 50) + ": " + r.error); else good.push(r.out); }
-      const slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "topic", pre = "bk-" + level + "-" + subject + "-" + slug + "-";
+      const isExam = !!body.exam, slug = topic.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "topic", pre = (isExam ? "ex-" : "bk-") + level + "-" + subject + "-" + slug + "-";
       const banks = (await vals("lesson:" + pre)).map((x) => x.v).sort((a, b) => a.id.localeCompare(b.id));
       const seen = new Set(); for (const b of banks) for (const q of b.questions) seen.add(normQ(q.q));
       const fresh = []; let dup = 0; for (const q of good) { const k = normQ(q.q); if (seen.has(k)) { dup++; continue; } seen.add(k); fresh.push(q); }
       let last = banks[banks.length - 1];
-      const mk = (n) => ({ id: pre + String(n).padStart(2, "0"), subject, level, topic, kind: "bank", title: "Question bank: " + topic + (n > 1 ? " (" + n + ")" : ""), emoji: "🎯", order: 900 + n, status: "published", pages: [], questions: [], source: "Uploaded questions" });
+      const mk = (n) => ({ id: pre + String(n).padStart(2, "0"), subject, level, topic, kind: isExam ? "exam" : "bank", title: (isExam ? "Exam: " : "Question bank: ") + topic + (n > 1 ? " (" + n + ")" : ""), emoji: isExam ? "📝" : "🎯", order: 900 + n, status: "published", pages: [], questions: [], source: "Uploaded questions" });
       const touched = new Map(); if (last) touched.set(last.id, last);
       for (const q of fresh) {
         if (!last || last.questions.length >= 80) { const n = last ? parseInt(last.id.slice(pre.length), 10) + 1 : 1; if (n > 99) break; last = mk(n); }
@@ -497,6 +513,10 @@ export function createHandler(getS, env = {}) {
       for (const b of touched.values()) { const r = cleanLesson({ ...b }, null); if (r.out) { r.out.id = b.id; await set("lesson:" + b.id, r.out); } }
       if (touched.size) await reindex();
       return json({ ok: true, added: fresh.length, duplicates: dup, rejected });
+    }
+    if (action === "userSetYear" && me.role === "admin") {
+      const u = await get("user:" + normUser(body.username)); if (!u) return fail("Learner not found.", 404);
+      if (!LEVELS.includes(body.year)) return fail("Choose JHS 1, 2 or 3."); u.year = body.year; u.level = body.year; await set("user:" + u.username, u); return json({ ok: true });
     }
     if (action === "importLessons") {
       for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }

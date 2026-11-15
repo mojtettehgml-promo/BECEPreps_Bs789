@@ -145,12 +145,12 @@ main.wrap{padding-bottom:110px}
 .sotop{position:fixed;top:max(8px,env(safe-area-inset-top));right:10px;z-index:80;background:rgba(255,255,255,.92);color:#b3261e;border:2px solid #f3c4c0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.18);cursor:pointer}
 [data-theme=dark] .sotop{background:rgba(30,30,40,.92);color:#ff9d96;border-color:#5a2f2c}
 </style></head><body><div id="app"><p style="padding:24px">Loading…</p></div><script>
-const APP_VERSION='v1.4.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.5.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
 const SUBJ=[{id:'sci',title:'Integrated Science',mas:'🔬',c1:'#0f9d58',c2:'#34d3a0',desc:'Explore how the world works!'},{id:'math',title:'Mathematics',mas:'🧮',c1:'#e8477a',c2:'#ff9a5a',desc:'Numbers, shapes and puzzles!'},{id:'ga',title:'Ghanaian Language (Ga)',mas:'🥁',c1:'#6d3fe0',c2:'#b07cff',desc:'Speak, read and write Ga!'},{id:'comp',title:'Computing',mas:'💻',c1:'#0ea5e9',c2:'#6366f1',desc:'Computers, coding and the digital world!'}];
-const LVL=[['b7','Basic 7'],['b8','Basic 8'],['b9','Basic 9']],lvlName=id=>(LVL.find(l=>l[0]===id)||LVL[0])[1];
+const LVL=[['b7','JHS 1'],['b8','JHS 2'],['b9','JHS 3']],lvlName=id=>(LVL.find(l=>l[0]===id)||LVL[0])[1];
 const subj=id=>SUBJ.find(s=>s.id===id)||SUBJ[0];
 const $=s=>document.querySelector(s),app=document.getElementById('app');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -219,7 +219,7 @@ function showAuth(note){
     <div class="panel"><div class="tabs" role="tablist"><button class="${tab==='in'?'on':''}" data-t="in">Sign in</button><button class="${tab==='up'?'on':''}" data-t="up">New learner</button></div>
     ${note?`<div class="msg err">${esc(note)}</div>`:''}
     ${tab==='in'?`<form id="f"><label class="f">Username<input id="u" autocomplete="username" autocapitalize="none" required></label><label class="f">Password<input id="p" type="password" autocomplete="current-password" required></label>${need?'<label class="f">6-digit code (administrator)<input id="c" inputmode="numeric" autocomplete="one-time-code"></label>':''}<div class="actions"><button class="btn primary big" style="width:100%">Let's go! 🚀</button></div><p class="hint" style="text-align:center"><button type="button" class="link" id="fg">Forgot my password</button></p></form>`
-    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Class<select id="lv">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
+    :`<form id="f"><label class="f">Learner's full name<input id="n" autocomplete="name" required></label><label class="f">Choose a username<input id="u" autocapitalize="none" autocomplete="username" required><span class="hint">Letters, numbers, dot or underscore (3 to 30).</span></label><label class="f">Your year (you will see only your own year's lessons)<select id="lv">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Parent or guardian's phone<input id="ph" type="tel" autocomplete="tel" required></label><label class="f">Choose a password<input id="p" type="password" autocomplete="new-password" required><span class="hint">At least 8 characters.</span></label><div class="actions"><button class="btn primary big" style="width:100%">Join the fun! 🎉</button></div><p class="hint">Your teacher will approve your account before you can start.</p></form>`}
     <div id="m">${msg?`<div class="msg ${cls}">${esc(msg)}</div>`:''}</div></div><p class="hint" style="text-align:center">${APP_NAME} ${APP_VERSION}</p></div></div>`;
     app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{tab=b.dataset.t;note='';need=false;paint()});
     const fg=$('#fg');if(fg)fg.onclick=async()=>{const u=$('#u').value.trim();if(!u)return paint('Type your username first, then press this again.','err');await api('requestReset',{username:u});paint('Your teacher has been told. They will give you a new password.','okm')};
@@ -235,7 +235,7 @@ function showAuth(note){
 async function boot(){
   if(!S.token)return showAuth();
   const r=await api('me');if(!r.ok){if(!S.token)return;return showAuth(r.error)}
-  if(r.level){S.level=r.level;lsSet('bpz_lv',r.level)}Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
+  if(r.level){S.level=r.level;lsSet('bpz_lv',r.level)}S.year=r.year||r.level||'b7';Object.assign(S,{role:r.role,username:r.username,fullName:r.fullName,progress:r.progress||{},pe:r.pe||0,settings:r.settings,asgUnseen:r.asgUnseen||0,pending:r.pending||0,twoStep:r.twoStep,vaultSet:r.vaultSet});
   if(r.role==='user')setTheme(r.theme||'sunny');else setTheme('sunny');
   if(S.role==='admin')return adminHome();
   touchStreak();queueSave();home()}
@@ -251,7 +251,7 @@ const EM=['🌟','🔎','💡','🧪','🚀','🎯','🌈','🧩'];
 const lvlOf=l=>l.level||'b7';
 const mine=()=>S.lessons.filter(l=>lvlOf(l)===S.level);
 const doneL=l=>!!((P().lessons||{})[l.id]&&P().lessons[l.id].read);
-function levelPills(){return `<div class="pills" role="tablist" aria-label="Class">${LVL.map(l=>`<button class="pill ${S.level===l[0]?'on':''}" data-lv="${l[0]}">${l[1]}</button>`).join('')}</div>`}
+function levelPills(){if(S.role==='user'&&S.year!=='b9')return `<div class="pills"><span class="pill on" style="cursor:default">🎓 ${lvlName(S.year||S.level)}</span></div>`;return `<div class="pills" role="tablist" aria-label="Class">${LVL.map(l=>`<button class="pill ${S.level===l[0]?'on':''}" data-lv="${l[0]}">${l[1]}</button>`).join('')}</div>`}
 function wireLevel(after){app.querySelectorAll('[data-lv]').forEach(b=>b.onclick=async()=>{S.level=b.dataset.lv;lsSet('bpz_lv',S.level);api('setLevel',{level:S.level});after()})}
 async function home(){
   window.scrollTo(0,0);stopSpeak();document.body.style.paddingBottom='70px';
@@ -271,11 +271,11 @@ async function subject(id){
   app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${lvlName(S.level)} · ${total?`${tp.length} topic${tp.length>1?'s':''}, ${total} mini-lessons`:s.desc}</p></div></div></div></header>
   <main class="wrap">${levelPills()}${tp.length?tp.map((t,ti)=>{const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0;return `<details class="topic" data-t="${esc(t.t)}" ${OPEN_T.has(t.t)?'open':''}><summary><span class="tdot" style="background:linear-gradient(130deg,${s.c1},${s.c2})">${dn===t.learn.length&&t.learn.length?'✓':ti+1}</span><span class="ttxt"><b>${esc(t.t)}</b><small>${dn}/${t.learn.length} done${t.test.length?' · topic test':''}</small><span class="tbar"><i style="width:${pct}%"></i></span></span></summary>
   <div class="path">${t.learn.map((l,i)=>{const r=(P().lessons||{})[l.id]||{};return `<button class="step ${r.read?'read':''}" data-l="${l.id}"><span class="sno">${r.read?'✓':esc(l.emoji||EM[i%EM.length])}</span><span class="stx"><b>${esc(l.title)}</b><small>${l.np} card${l.np>1?'s':''} · about ${Math.max(1,l.np)} min${l.nq?` · quick check`:''}</small></span></button>`}).join('')}
-  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`
-  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div>`}</main>${nav('home')}`;
+  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`+`<div id="exw"></div>`
+  :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div><div id="exw"></div>`}</main>${nav('home')}`;
   wireNav();wireLevel(()=>{OPEN_T.clear();subject(id)});$('#bk').onclick=home;
   app.querySelectorAll('details.topic').forEach(d=>d.ontoggle=()=>{d.open?OPEN_T.add(d.dataset.t):OPEN_T.delete(d.dataset.t)});
-  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}}
+  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}examInfo(id)}
 /* ---- lesson reader: short, colourful cards ---- */
 const CARD=['#6d3fe0','#e8477a','#0a9b7a','#e07a00','#0b6fc2','#b01e95'];
 async function openLesson(id,pg){
@@ -391,6 +391,24 @@ async function mock(sid){
     app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Challenge done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">${res.length<n?`You answered ${res.length} of ${n}. `:''}Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
     ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>mock(sid);$('#b').onclick=()=>subject(sid)}})}
 
+/* ---- exam practice: past and practice papers uploaded by the teacher ---- */
+async function examInfo(sid){const el=$('#exw');if(!el)return;const r=await api('examList');if(!r.ok||!$('#exw'))return;
+  const ps=r.papers.filter(p=>p.subject===sid&&p.level===S.level);if(!ps.length)return;
+  const by=new Map();ps.forEach(p=>by.set(p.paper,(by.get(p.paper)||0)+p.n));const tot=[...by.values()].reduce((a,b)=>a+b,0);
+  el.innerHTML=`<div class="panel"><h3>📝 Exam practice (${lvlName(S.level)})</h3><p class="hint">Questions from exam papers, mixed at random each time. ${tot} questions in ${by.size} paper${by.size>1?'s':''}.</p><div class="actions"><button class="btn primary" id="exall">Mixed practice</button></div>${by.size>1?`<div class="chips" style="margin-top:8px">${[...by.entries()].map(([t,n])=>`<button class="btn sm" data-ex="${esc(t)}">${esc(t)} (${n})</button>`).join('')}</div>`:''}</div>`;
+  $('#exall').onclick=()=>examPractice(sid,'');el.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>examPractice(sid,b.dataset.ex))}
+async function examPractice(sid,paper){
+  const r=await api('examQs',{subject:sid,level:S.level,paper});if(!r.ok)return toast(r.error);
+  if(!r.questions.length)return toast('No exam questions here yet.');
+  const items=shuffle(r.questions).slice(0,Math.max(5,S.settings.mockq)).map(q=>({k:q.t,q:q.t==='mcq'?shufMcq(q):q,lid:q.lid})),s=subj(sid);
+  if(!confirm(`Exam practice: ${items.length} questions in ${S.settings.mockt} minutes. Ready?`))return;
+  runQuiz({items,instant:false,timer:S.settings.mockt*60,onExit:()=>subject(sid),onDone:res=>{
+    const c=res.filter(x=>x.ok).length,n=items.length,pct=Math.round(100*c/n),before=starsTotal();addMistakes(res);touchStreak();queueSave();const gain=starsTotal()-before;
+    window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
+    const wrong=res.filter(x=>!x.ok);
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Exam practice done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
+    ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>examPractice(sid,paper);$('#b').onclick=()=>subject(sid)}})}
+
 /* ---- question bank: random practice from the notes' questions and answers ---- */
 const qh=str=>{let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const qid=(lid,q)=>qh(lid+'|'+normA(q.q).slice(0,160));
@@ -481,20 +499,21 @@ const nm_=s=>esc(s.fullName||s.username)+(s.fullName?` <span class="meta">(${esc
 async function adminHome(tab){
   if(tab)ADM_TAB=tab;window.scrollTo(0,0);document.body.style.paddingBottom='0';
   const r=await api('me');if(r.ok)S.pending=r.pending||0;
-  app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><span class="brandn">🦉 ${APP_NAME} · Teacher</span><button class="btn sm" id="so">Sign out</button></div></div></header><main class="wrap" style="padding-bottom:40px"><div class="admtabs" role="tablist">${[['lessons','📚 Lessons'],['learners','👧 Learners'+(S.pending?` (${S.pending} new)`:'')],['asg','📬 Homework'],['set','⚙️ Settings & backup']].map(([k,l])=>`<button data-at="${k}" class="${ADM_TAB===k?'on':''}">${l}</button>`).join('')}</div><div id="ap"></div></main>`;
+  app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><span class="brandn">🦉 ${APP_NAME} · Teacher</span><button class="btn sm" id="so">Sign out</button></div></div></header><main class="wrap" style="padding-bottom:40px"><div class="admtabs" role="tablist">${[['lessons','📚 Lessons'],['learners','👧 Learners'+(S.pending?` (${S.pending} new)`:'')],['exams','📝 Exams'],['asg','📬 Homework'],['set','⚙️ Settings & backup']].map(([k,l])=>`<button data-at="${k}" class="${ADM_TAB===k?'on':''}">${l}</button>`).join('')}</div><div id="ap"></div></main>`;
   $('#so').onclick=signOut;app.querySelectorAll('[data-at]').forEach(b=>b.onclick=()=>adminHome(b.dataset.at));
-  const ap=$('#ap');({lessons:adminLessons,learners:adminLearners,asg:adminAssign,set:adminSettings})[ADM_TAB](ap)}
+  const ap=$('#ap');({lessons:adminLessons,learners:adminLearners,exams:adminExams,asg:adminAssign,set:adminSettings})[ADM_TAB](ap)}
 /* ---------- learners ---------- */
 async function adminLearners(ap){
   const r=await api('listUsers');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
   const pend=r.users.filter(u=>u.status==='pending'),rest=r.users.filter(u=>u.status!=='pending');
-  const card=u=>`<div class="ucard"><div><b>${nm_(u)}</b><span class="badge ${u.status==='active'?'':'d'}">${u.status}</span>${u.resetReq?'<span class="badge d">asked for a new password</span>':''}<div class="meta">📞 ${esc(u.phone)} · 🔑 ${r.vaultSet?(u.pw?`<span class="pw" data-pw="${esc(u.pw)}">show</span>`:'not stored'):'not stored (set PASSWORD_VAULT_KEY)'}</div><div class="meta">⭐ ${u.stars} · ${u.lessonsDone} lessons read · 🔥 ${u.streak} · last in ${u.lastLogin?fmtD(u.lastLogin):'never'}</div></div>
-  <div class="actions" style="margin:0">${u.status==='pending'?`<button class="btn sm good" data-st="active" data-u="${esc(u.username)}">Approve</button><button class="btn sm danger" data-st="rejected" data-u="${esc(u.username)}">Reject</button>`:`<button class="btn sm" data-pwr="${esc(u.username)}">New password</button><button class="btn sm" data-rp="${esc(u.username)}">Reset progress</button><button class="btn sm" data-st="${u.status==='active'?'deactivated':'active'}" data-u="${esc(u.username)}">${u.status==='active'?'Deactivate':'Activate'}</button>`}<button class="btn sm danger" data-del="${esc(u.username)}">Delete</button></div></div>`;
+  const card=u=>`<div class="ucard"><div><b>${nm_(u)}</b><span class="badge ${u.status==='active'?'':'d'}">${u.status}</span><span class="badge">${lvlName(u.year||u.level)}</span>${u.resetReq?'<span class="badge d">asked for a new password</span>':''}<div class="meta">📞 ${esc(u.phone)} · 🔑 ${r.vaultSet?(u.pw?`<span class="pw" data-pw="${esc(u.pw)}">show</span>`:'not stored'):'not stored (set PASSWORD_VAULT_KEY)'}</div><div class="meta">⭐ ${u.stars} · ${u.lessonsDone} lessons read · 🔥 ${u.streak} · last in ${u.lastLogin?fmtD(u.lastLogin):'never'}</div></div>
+  <div class="actions" style="margin:0">${u.status==='pending'?`<button class="btn sm good" data-st="active" data-u="${esc(u.username)}">Approve</button><button class="btn sm danger" data-st="rejected" data-u="${esc(u.username)}">Reject</button>`:`<button class="btn sm" data-pwr="${esc(u.username)}">New password</button><button class="btn sm" data-yr="${esc(u.username)}">Change year</button><button class="btn sm" data-rp="${esc(u.username)}">Reset progress</button><button class="btn sm" data-st="${u.status==='active'?'deactivated':'active'}" data-u="${esc(u.username)}">${u.status==='active'?'Deactivate':'Activate'}</button>`}<button class="btn sm danger" data-del="${esc(u.username)}">Delete</button></div></div>`;
   ap.innerHTML=`${pend.length?`<div class="panel"><h3>Waiting for approval (${pend.length})</h3>${pend.map(card).join('')}<div class="actions"><button class="btn primary" id="aa">Approve all</button></div></div>`:''}<div class="panel"><h3>Learners (${rest.length})</h3>${rest.map(card).join('')||'<p>No learners yet.</p>'}</div>`;
   const again=()=>adminLearners(ap);
   ap.querySelectorAll('.pw').forEach(s=>s.onclick=()=>{s.textContent=s.textContent==='show'?s.dataset.pw:'show'});
   ap.querySelectorAll('[data-st]').forEach(b=>b.onclick=async()=>{const x=await api('setStatus',{username:b.dataset.u,status:b.dataset.st});toast(x.ok?'Done':x.error);adminHome()});
   ap.querySelectorAll('[data-pwr]').forEach(b=>b.onclick=async()=>{const p=prompt('New password for '+b.dataset.pwr+' (at least 8 characters):');if(!p)return;const x=await api('adminResetPassword',{username:b.dataset.pwr,newPassword:p});toast(x.ok?'Password changed':x.error);if(x.ok)again()});
+  ap.querySelectorAll('[data-yr]').forEach(b=>b.onclick=async()=>{const v=prompt('Which year for '+b.dataset.yr+'? Type 1 for JHS 1, 2 for JHS 2, or 3 for JHS 3.');if(!v)return;const y={'1':'b7','2':'b8','3':'b9'}[v.trim().replace(/[^123]/g,'').slice(0,1)];if(!y)return toast('Type 1, 2 or 3');const x=await api('userSetYear',{username:b.dataset.yr,year:y});toast(x.ok?'Year changed':x.error);if(x.ok)again()});
   ap.querySelectorAll('[data-rp]').forEach(b=>b.onclick=async()=>{if(!confirm('Reset all stars, lessons and streak for '+b.dataset.rp+'?'))return;const x=await api('adminResetProgress',{username:b.dataset.rp});toast(x.ok?'Progress reset':x.error)});
   ap.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete '+b.dataset.del+' and all their work? This cannot be undone.'))return;const x=await api('deleteUser',{username:b.dataset.del});toast(x.ok?'Deleted':x.error);adminHome()});
   const aa=$('#aa');if(aa)aa.onclick=async()=>{const x=await api('approveAll');toast(x.ok?x.approved+' approved':x.error);adminHome()}}
@@ -831,7 +850,7 @@ function bookPanelWire(ap,again){
       catch(e){rep.push(`<b>${esc(f.name)}</b>: could not be read (${esc(e.message||'error')})`)}}
     bm.innerHTML=`<div class="msg okm">${rep.join('<br><br>')}</div><div class="actions"><button class="btn primary" id="bd">Show my lessons</button></div>`;$('#bd').onclick=again;$('#bb').disabled=false}}
 /* ---- upload prepared questions: filed by class, subject and strand/topic ---- */
-const QTEMPLATE=`Class: Basic 8
+const QTEMPLATE=`Class: JHS 2
 Subject: Integrated Science
 Strand: 4.2 Electricity and Electronics
 
@@ -850,7 +869,7 @@ Ideas: light energy = light, sun, solar | changes to electrical = electrical, el
 (b) State one advantage of solar power. [1]
 Answer: It is renewable; it does not pollute
 
-Class: Basic 9
+Class: JHS 3
 Subject: Mathematics
 Strand: 1.1 Number
 
@@ -861,7 +880,7 @@ C. 7
 D. 8
 Answer: C
 `;
-const QLV=t=>{const m=String(t).match(/([789])/);return m?'b'+m[1]:null};
+const QLV=t=>{t=String(t);let m=t.match(/jhs\s*([123])/i);if(m)return 'b'+(6+ +m[1]);m=t.match(/([789])/);return m?'b'+m[1]:null};
 const QSB=t=>{t=String(t).toLowerCase();return /sci/.test(t)?'sci':/math/.test(t)?'math':/\bga\b|ghanaian/.test(t)?'ga':/comput|ict/.test(t)?'comp':null};
 function qTopicFor(text,level,subject){text=String(text||'').trim();const have=[...new Set((S.lessons||[]).filter(l=>l.level===level&&l.subject===subject&&l.topic).map(l=>l.topic))];
   const m=text.match(/^(\d+\.\d+[a-z]?)(?=\s|$)/i);if(m){const f=have.find(t=>t.toLowerCase().startsWith(m[1].toLowerCase())&&/^(\s|$)/.test(t.slice(m[1].length)));if(f)return f}
@@ -872,7 +891,7 @@ function parseQUpload(text,def){
   for(const raw of lines){const l=raw.trim();let m;
     if((m=l.match(/^(?:class|level|year)\s*[:=]\s*(.+)$/i))){push();cur.level=QLV(m[1])||cur.level;continue}
     if((m=l.match(/^subject\s*[:=]\s*(.+)$/i))){push();cur.subject=QSB(m[1])||cur.subject;continue}
-    if((m=l.match(/^(?:strand|sub-?strand|topic)\s*[:=]\s*(.+)$/i))){push();cur.topic=m[1].trim();continue}
+    if((m=l.match(/^(?:strand|sub-?strand|topic|paper|exam)\s*[:=]\s*(.+)$/i))){push();cur.topic=m[1].trim();continue}
     buf.push(raw)}
   push();const out=new Map();
   groups.forEach(g=>{const topic=qTopicFor(g.topic,g.level,g.subject),k=g.level+'|'+g.subject+'|'+topic;if(!out.has(k))out.set(k,{level:g.level,subject:g.subject,topic,qs:[],warn:[]});const o=out.get(k);o.qs.push(...g.qs);o.warn.push(...g.warn)});
@@ -901,6 +920,32 @@ function qUploadWire(ap){
       try{for(const g of ok){for(let i=0;i<g.qs.length;i+=40){qm.innerHTML=`<div class="msg okm">Filing ${esc(g.topic)}… ${Math.min(i+40,g.qs.length)} of ${g.qs.length}</div>`;const x=await api('questionsAdd',{level:g.level,subject:g.subject,topic:g.topic,questions:g.qs.slice(i,i+40)});if(!x.ok)throw new Error(x.error||'Something went wrong.');added+=x.added;dup+=x.duplicates;rej.push(...x.rejected)}}
         qm.innerHTML=`<div class="msg okm">Done. ${added} question${added===1?'':'s'} filed${dup?`, ${dup} skipped because they were already there`:''}${rej.length?`, ${rej.length} rejected: ${rej.slice(0,4).map(esc).join('; ')}`:''}.</div>`;const r2=await api('lessonList');if(r2.ok){S.lessons=r2.lessons;fillTopics()}}
       catch(e){qm.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}}}
+/* ---- admin: exam papers by year ---- */
+async function adminExams(ap){
+  const r=await api('lessonList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}S.lessons=r.lessons;
+  const ex=r.lessons.filter(l=>l.kind==='exam'),by=new Map();ex.forEach(l=>{const k=l.level+'|'+l.subject+'|'+l.topic;if(!by.has(k))by.set(k,{level:l.level,subject:l.subject,paper:l.topic,n:0,ids:[]});const o=by.get(k);o.n+=l.nq;o.ids.push(l.id)});
+  const list=[...by.values()].sort((a,b)=>a.level.localeCompare(b.level)||a.subject.localeCompare(b.subject)||a.paper.localeCompare(b.paper));
+  ap.innerHTML=`<div class="panel"><h3>📝 Upload exam questions</h3><p class="hint">Choose the year and subject, give the paper a name (for example <i>2024 End of term 2</i>), then upload a Word (.docx) or text file, or paste the questions. They appear for that year only. JHS 3 learners can open every year. Use the same layout as the question template: <i>1. Question</i>, options <i>A. B. C. D.</i>, then <i>Answer: B</i>. You can also put <i>Class: JHS 2</i>, <i>Subject: Mathematics</i> and <i>Paper: 2024 Mock 1</i> lines inside the file.</p>
+  <div class="two"><label class="f">Year<select id="xl">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Subject<select id="xs">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label></div>
+  <label class="f">Paper name<input id="xp" placeholder="For example 2024 End of term 2"></label>
+  <label class="f">Files (.docx or .txt), one or many<input type="file" id="xf" accept=".docx,.txt" multiple></label>
+  <label class="f">Or paste the questions here<textarea id="xt" rows="4"></textarea></label>
+  <div class="actions"><button class="btn primary" id="xc">Check the questions</button><button class="btn" id="xd">⬇ Blank template</button></div><div id="xm"></div></div>
+  <div class="panel"><h3>Papers uploaded (${list.length})</h3>${list.length?list.map((p,i)=>`<div class="ucard"><div><b>${esc(p.paper)}</b><div class="meta">${lvlName(p.level)} · ${esc(subj(p.subject).title)} · ${p.n} question${p.n===1?'':'s'}</div></div><div class="actions" style="margin:0"><button class="btn sm danger" data-xd="${i}">Delete</button></div></div>`).join(''):'<p class="hint">No exam papers yet.</p>'}</div>`;
+  $('#xd').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([QTEMPLATE],{type:'text/plain'}));a.download='questions-template.txt';a.click()};
+  ap.querySelectorAll('[data-xd]').forEach(b=>b.onclick=async()=>{const p=list[+b.dataset.xd];if(!confirm('Delete the paper "'+p.paper+'" ('+p.n+' questions)?'))return;for(const id of p.ids)await api('lessonDelete',{id});toast('Deleted');adminExams(ap)});
+  $('#xc').onclick=async()=>{const xm=$('#xm'),fs=[...$('#xf').files],def={level:$('#xl').value,subject:$('#xs').value,topic:$('#xp').value.trim()},all=[],bad=[];
+    if(!fs.length&&!$('#xt').value.trim())return xm.innerHTML='<div class="msg err">Choose a file or paste some questions first.</div>';
+    for(const f of fs){try{const t=/\.docx$/i.test(f.name)?await readDocx(f):await f.text();all.push(...parseQUpload(t,def))}catch(e){bad.push(f.name+': '+(e.message||'could not be read'))}}
+    if($('#xt').value.trim())all.push(...parseQUpload($('#xt').value,def));
+    const m=new Map();all.forEach(g=>{const k=g.level+'|'+g.subject+'|'+g.topic;if(!m.has(k))m.set(k,{...g,qs:[...g.qs],warn:[...g.warn]});else{m.get(k).qs.push(...g.qs);m.get(k).warn.push(...g.warn)}});
+    const groups=[...m.values()],ok=groups.filter(g=>g.topic&&g.qs.length),noName=groups.filter(g=>!g.topic&&(g.qs.length||g.warn.length));
+    if(!ok.length&&!noName.length&&!bad.length)return xm.innerHTML='<div class="msg err">No questions were found. Number each question (1. 2. 3.), put the options on lines A. B. C. D., and add a line “Answer: B”.</div>';
+    xm.innerHTML=`<div class="msg okm"><ul style="margin:0;padding-left:18px">${groups.map(g=>`<li><b>${lvlName(g.level)} · ${esc(subj(g.subject).title)} · ${esc(g.topic||'(no paper name)')}</b>: ${g.qs.length} question${g.qs.length===1?'':'s'}${g.warn.length?`<br><span class="hint">Left out: ${g.warn.slice(0,6).map(esc).join('; ')}${g.warn.length>6?` and ${g.warn.length-6} more`:''}</span>`:''}</li>`).join('')}</ul>${bad.length?'<br>'+bad.map(esc).join('<br>'):''}${noName.length?'<br>Some questions have no paper name. Type one above. They will not be saved.':''}</div>${ok.length?'<div class="actions"><button class="btn primary" id="xg">File these questions</button></div>':''}`;
+    const xg=$('#xg');if(xg)xg.onclick=async()=>{xg.disabled=true;let added=0,dup=0,rej=[];
+      try{for(const g of ok){for(let i=0;i<g.qs.length;i+=40){xm.innerHTML=`<div class="msg okm">Filing ${esc(g.topic)}… ${Math.min(i+40,g.qs.length)} of ${g.qs.length}</div>`;const x=await api('questionsAdd',{exam:true,level:g.level,subject:g.subject,topic:g.topic,questions:g.qs.slice(i,i+40)});if(!x.ok)throw new Error(x.error||'Something went wrong.');added+=x.added;dup+=x.duplicates;rej.push(...x.rejected)}}
+        xm.innerHTML=`<div class="msg okm">Done. ${added} question${added===1?'':'s'} filed${dup?`, ${dup} skipped because they were already there`:''}${rej.length?`, ${rej.length} rejected: ${rej.slice(0,4).map(esc).join('; ')}`:''}.</div>`;setTimeout(()=>adminExams(ap),1500)}
+      catch(e){xm.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}}}
 boot();
 
 </script></body></html>

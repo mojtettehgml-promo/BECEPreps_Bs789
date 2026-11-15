@@ -133,7 +133,7 @@ function bookPanelWire(ap,again){
       catch(e){rep.push(`<b>${esc(f.name)}</b>: could not be read (${esc(e.message||'error')})`)}}
     bm.innerHTML=`<div class="msg okm">${rep.join('<br><br>')}</div><div class="actions"><button class="btn primary" id="bd">Show my lessons</button></div>`;$('#bd').onclick=again;$('#bb').disabled=false}}
 /* ---- upload prepared questions: filed by class, subject and strand/topic ---- */
-const QTEMPLATE=`Class: Basic 8
+const QTEMPLATE=`Class: JHS 2
 Subject: Integrated Science
 Strand: 4.2 Electricity and Electronics
 
@@ -152,7 +152,7 @@ Ideas: light energy = light, sun, solar | changes to electrical = electrical, el
 (b) State one advantage of solar power. [1]
 Answer: It is renewable; it does not pollute
 
-Class: Basic 9
+Class: JHS 3
 Subject: Mathematics
 Strand: 1.1 Number
 
@@ -163,7 +163,7 @@ C. 7
 D. 8
 Answer: C
 `;
-const QLV=t=>{const m=String(t).match(/([789])/);return m?'b'+m[1]:null};
+const QLV=t=>{t=String(t);let m=t.match(/jhs\s*([123])/i);if(m)return 'b'+(6+ +m[1]);m=t.match(/([789])/);return m?'b'+m[1]:null};
 const QSB=t=>{t=String(t).toLowerCase();return /sci/.test(t)?'sci':/math/.test(t)?'math':/\bga\b|ghanaian/.test(t)?'ga':/comput|ict/.test(t)?'comp':null};
 function qTopicFor(text,level,subject){text=String(text||'').trim();const have=[...new Set((S.lessons||[]).filter(l=>l.level===level&&l.subject===subject&&l.topic).map(l=>l.topic))];
   const m=text.match(/^(\d+\.\d+[a-z]?)(?=\s|$)/i);if(m){const f=have.find(t=>t.toLowerCase().startsWith(m[1].toLowerCase())&&/^(\s|$)/.test(t.slice(m[1].length)));if(f)return f}
@@ -174,7 +174,7 @@ function parseQUpload(text,def){
   for(const raw of lines){const l=raw.trim();let m;
     if((m=l.match(/^(?:class|level|year)\s*[:=]\s*(.+)$/i))){push();cur.level=QLV(m[1])||cur.level;continue}
     if((m=l.match(/^subject\s*[:=]\s*(.+)$/i))){push();cur.subject=QSB(m[1])||cur.subject;continue}
-    if((m=l.match(/^(?:strand|sub-?strand|topic)\s*[:=]\s*(.+)$/i))){push();cur.topic=m[1].trim();continue}
+    if((m=l.match(/^(?:strand|sub-?strand|topic|paper|exam)\s*[:=]\s*(.+)$/i))){push();cur.topic=m[1].trim();continue}
     buf.push(raw)}
   push();const out=new Map();
   groups.forEach(g=>{const topic=qTopicFor(g.topic,g.level,g.subject),k=g.level+'|'+g.subject+'|'+topic;if(!out.has(k))out.set(k,{level:g.level,subject:g.subject,topic,qs:[],warn:[]});const o=out.get(k);o.qs.push(...g.qs);o.warn.push(...g.warn)});
@@ -203,4 +203,30 @@ function qUploadWire(ap){
       try{for(const g of ok){for(let i=0;i<g.qs.length;i+=40){qm.innerHTML=`<div class="msg okm">Filing ${esc(g.topic)}… ${Math.min(i+40,g.qs.length)} of ${g.qs.length}</div>`;const x=await api('questionsAdd',{level:g.level,subject:g.subject,topic:g.topic,questions:g.qs.slice(i,i+40)});if(!x.ok)throw new Error(x.error||'Something went wrong.');added+=x.added;dup+=x.duplicates;rej.push(...x.rejected)}}
         qm.innerHTML=`<div class="msg okm">Done. ${added} question${added===1?'':'s'} filed${dup?`, ${dup} skipped because they were already there`:''}${rej.length?`, ${rej.length} rejected: ${rej.slice(0,4).map(esc).join('; ')}`:''}.</div>`;const r2=await api('lessonList');if(r2.ok){S.lessons=r2.lessons;fillTopics()}}
       catch(e){qm.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}}}
+/* ---- admin: exam papers by year ---- */
+async function adminExams(ap){
+  const r=await api('lessonList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}S.lessons=r.lessons;
+  const ex=r.lessons.filter(l=>l.kind==='exam'),by=new Map();ex.forEach(l=>{const k=l.level+'|'+l.subject+'|'+l.topic;if(!by.has(k))by.set(k,{level:l.level,subject:l.subject,paper:l.topic,n:0,ids:[]});const o=by.get(k);o.n+=l.nq;o.ids.push(l.id)});
+  const list=[...by.values()].sort((a,b)=>a.level.localeCompare(b.level)||a.subject.localeCompare(b.subject)||a.paper.localeCompare(b.paper));
+  ap.innerHTML=`<div class="panel"><h3>📝 Upload exam questions</h3><p class="hint">Choose the year and subject, give the paper a name (for example <i>2024 End of term 2</i>), then upload a Word (.docx) or text file, or paste the questions. They appear for that year only. JHS 3 learners can open every year. Use the same layout as the question template: <i>1. Question</i>, options <i>A. B. C. D.</i>, then <i>Answer: B</i>. You can also put <i>Class: JHS 2</i>, <i>Subject: Mathematics</i> and <i>Paper: 2024 Mock 1</i> lines inside the file.</p>
+  <div class="two"><label class="f">Year<select id="xl">${LVL.map(l=>`<option value="${l[0]}">${l[1]}</option>`).join('')}</select></label><label class="f">Subject<select id="xs">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label></div>
+  <label class="f">Paper name<input id="xp" placeholder="For example 2024 End of term 2"></label>
+  <label class="f">Files (.docx or .txt), one or many<input type="file" id="xf" accept=".docx,.txt" multiple></label>
+  <label class="f">Or paste the questions here<textarea id="xt" rows="4"></textarea></label>
+  <div class="actions"><button class="btn primary" id="xc">Check the questions</button><button class="btn" id="xd">⬇ Blank template</button></div><div id="xm"></div></div>
+  <div class="panel"><h3>Papers uploaded (${list.length})</h3>${list.length?list.map((p,i)=>`<div class="ucard"><div><b>${esc(p.paper)}</b><div class="meta">${lvlName(p.level)} · ${esc(subj(p.subject).title)} · ${p.n} question${p.n===1?'':'s'}</div></div><div class="actions" style="margin:0"><button class="btn sm danger" data-xd="${i}">Delete</button></div></div>`).join(''):'<p class="hint">No exam papers yet.</p>'}</div>`;
+  $('#xd').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([QTEMPLATE],{type:'text/plain'}));a.download='questions-template.txt';a.click()};
+  ap.querySelectorAll('[data-xd]').forEach(b=>b.onclick=async()=>{const p=list[+b.dataset.xd];if(!confirm('Delete the paper "'+p.paper+'" ('+p.n+' questions)?'))return;for(const id of p.ids)await api('lessonDelete',{id});toast('Deleted');adminExams(ap)});
+  $('#xc').onclick=async()=>{const xm=$('#xm'),fs=[...$('#xf').files],def={level:$('#xl').value,subject:$('#xs').value,topic:$('#xp').value.trim()},all=[],bad=[];
+    if(!fs.length&&!$('#xt').value.trim())return xm.innerHTML='<div class="msg err">Choose a file or paste some questions first.</div>';
+    for(const f of fs){try{const t=/\.docx$/i.test(f.name)?await readDocx(f):await f.text();all.push(...parseQUpload(t,def))}catch(e){bad.push(f.name+': '+(e.message||'could not be read'))}}
+    if($('#xt').value.trim())all.push(...parseQUpload($('#xt').value,def));
+    const m=new Map();all.forEach(g=>{const k=g.level+'|'+g.subject+'|'+g.topic;if(!m.has(k))m.set(k,{...g,qs:[...g.qs],warn:[...g.warn]});else{m.get(k).qs.push(...g.qs);m.get(k).warn.push(...g.warn)}});
+    const groups=[...m.values()],ok=groups.filter(g=>g.topic&&g.qs.length),noName=groups.filter(g=>!g.topic&&(g.qs.length||g.warn.length));
+    if(!ok.length&&!noName.length&&!bad.length)return xm.innerHTML='<div class="msg err">No questions were found. Number each question (1. 2. 3.), put the options on lines A. B. C. D., and add a line “Answer: B”.</div>';
+    xm.innerHTML=`<div class="msg okm"><ul style="margin:0;padding-left:18px">${groups.map(g=>`<li><b>${lvlName(g.level)} · ${esc(subj(g.subject).title)} · ${esc(g.topic||'(no paper name)')}</b>: ${g.qs.length} question${g.qs.length===1?'':'s'}${g.warn.length?`<br><span class="hint">Left out: ${g.warn.slice(0,6).map(esc).join('; ')}${g.warn.length>6?` and ${g.warn.length-6} more`:''}</span>`:''}</li>`).join('')}</ul>${bad.length?'<br>'+bad.map(esc).join('<br>'):''}${noName.length?'<br>Some questions have no paper name. Type one above. They will not be saved.':''}</div>${ok.length?'<div class="actions"><button class="btn primary" id="xg">File these questions</button></div>':''}`;
+    const xg=$('#xg');if(xg)xg.onclick=async()=>{xg.disabled=true;let added=0,dup=0,rej=[];
+      try{for(const g of ok){for(let i=0;i<g.qs.length;i+=40){xm.innerHTML=`<div class="msg okm">Filing ${esc(g.topic)}… ${Math.min(i+40,g.qs.length)} of ${g.qs.length}</div>`;const x=await api('questionsAdd',{exam:true,level:g.level,subject:g.subject,topic:g.topic,questions:g.qs.slice(i,i+40)});if(!x.ok)throw new Error(x.error||'Something went wrong.');added+=x.added;dup+=x.duplicates;rej.push(...x.rejected)}}
+        xm.innerHTML=`<div class="msg okm">Done. ${added} question${added===1?'':'s'} filed${dup?`, ${dup} skipped because they were already there`:''}${rej.length?`, ${rej.length} rejected: ${rej.slice(0,4).map(esc).join('; ')}`:''}.</div>`;setTimeout(()=>adminExams(ap),1500)}
+      catch(e){xm.innerHTML=`<div class="msg err">${esc(e.message)}</div>`}}}}
 boot();

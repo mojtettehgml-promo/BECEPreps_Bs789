@@ -94,6 +94,24 @@ async function mock(sid){
     app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Challenge done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">${res.length<n?`You answered ${res.length} of ${n}. `:''}Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
     ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>mock(sid);$('#b').onclick=()=>subject(sid)}})}
 
+/* ---- exam practice: past and practice papers uploaded by the teacher ---- */
+async function examInfo(sid){const el=$('#exw');if(!el)return;const r=await api('examList');if(!r.ok||!$('#exw'))return;
+  const ps=r.papers.filter(p=>p.subject===sid&&p.level===S.level);if(!ps.length)return;
+  const by=new Map();ps.forEach(p=>by.set(p.paper,(by.get(p.paper)||0)+p.n));const tot=[...by.values()].reduce((a,b)=>a+b,0);
+  el.innerHTML=`<div class="panel"><h3>📝 Exam practice (${lvlName(S.level)})</h3><p class="hint">Questions from exam papers, mixed at random each time. ${tot} questions in ${by.size} paper${by.size>1?'s':''}.</p><div class="actions"><button class="btn primary" id="exall">Mixed practice</button></div>${by.size>1?`<div class="chips" style="margin-top:8px">${[...by.entries()].map(([t,n])=>`<button class="btn sm" data-ex="${esc(t)}">${esc(t)} (${n})</button>`).join('')}</div>`:''}</div>`;
+  $('#exall').onclick=()=>examPractice(sid,'');el.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>examPractice(sid,b.dataset.ex))}
+async function examPractice(sid,paper){
+  const r=await api('examQs',{subject:sid,level:S.level,paper});if(!r.ok)return toast(r.error);
+  if(!r.questions.length)return toast('No exam questions here yet.');
+  const items=shuffle(r.questions).slice(0,Math.max(5,S.settings.mockq)).map(q=>({k:q.t,q:q.t==='mcq'?shufMcq(q):q,lid:q.lid})),s=subj(sid);
+  if(!confirm(`Exam practice: ${items.length} questions in ${S.settings.mockt} minutes. Ready?`))return;
+  runQuiz({items,instant:false,timer:S.settings.mockt*60,onExit:()=>subject(sid),onDone:res=>{
+    const c=res.filter(x=>x.ok).length,n=items.length,pct=Math.round(100*c/n),before=starsTotal();addMistakes(res);touchStreak();queueSave();const gain=starsTotal()-before;
+    window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
+    const wrong=res.filter(x=>!x.ok);
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}"><div class="wrap"><h1>${s.mas} Exam practice done!</h1></div></header><main class="wrap"><div class="res"><div class="stars">${starRow(pct)}</div><div class="big">${c}/${n}</div><p><b>${pct>=80?'Super Star!':pct>=50?'Good job!':'Practise a little more and try again.'}</b>${gain>0?` +${gain} ⭐`:''}</p><p class="hint">Questions you missed were saved in <b>Fix my mistakes</b>.</p><div class="actions" style="justify-content:center"><button class="btn primary" id="a">Try another 🔁</button><button class="btn" id="b">Back</button></div></div>
+    ${wrong.length?`<div class="panel"><h3>Let's look at what you missed</h3>${wrong.map(x=>`<div class="ucard" style="display:block"><div class="rich">${rtInline(x.it.q.q)}</div><div class="hint">Answer: <b>${x.it.k==='mcq'?rtInline(x.it.q.o[x.it.q.c]):esc(fibShow(x.it.q))}</b></div></div>`).join('')}</div>`:''}</main>${nav('home')}`;wireNav();$('#a').onclick=()=>examPractice(sid,paper);$('#b').onclick=()=>subject(sid)}})}
+
 /* ---- question bank: random practice from the notes' questions and answers ---- */
 const qh=str=>{let h=5381;for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))|0;return (h>>>0).toString(36)};
 const qid=(lid,q)=>qh(lid+'|'+normA(q.q).slice(0,160));
