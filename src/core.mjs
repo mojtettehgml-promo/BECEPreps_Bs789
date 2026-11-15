@@ -466,16 +466,17 @@ export function createHandler(getS, env = {}) {
       const from = Math.max(0, parseInt(body.from, 10) || 0), STEP = 10, chunk = part.lessons.slice(from, from + STEP);
       const have = new Set((await store.list({ prefix: "lesson:" })).blobs.map((x) => x.key.slice(7)));
       const gone = new Set(body.includeDeleted ? [] : ((await get("seedgone")) || []));
-      let n = 0, already = 0, del = 0; const added = [], need = new Set();
+      let n = 0, already = 0, del = 0, upd = 0; const added = [], need = new Set();
       for (const x of chunk) {
-        if (have.has(x.id)) { already++; continue; }
+        const exists = have.has(x.id);
+        if (exists && !body.replace) { already++; continue; }
         if (gone.has(x.id)) { del++; continue; }
-        const r = cleanLesson({ ...x }, null); if (r.out) { r.out.id = x.id; await set("lesson:" + x.id, r.out); n++; added.push(x.id); for (const pg of x.pages || []) for (const m of String(pg.body || "").matchAll(/\[\[img:([A-Za-z0-9]+)/g)) need.add(m[1]); }
+        const r = cleanLesson({ ...x }, null); if (r.out) { r.out.id = x.id; await set("lesson:" + x.id, r.out); if (exists) upd++; else { n++; added.push(x.id); } for (const pg of x.pages || []) for (const m of String(pg.body || "").matchAll(/\[\[img:([A-Za-z0-9]+)/g)) need.add(m[1]); }
       }
       if (added.length && body.includeDeleted) { const g = ((await get("seedgone")) || []).filter((i) => !added.includes(i)); await set("seedgone", g); }
       if (need.size) { const haveImg = new Set((await store.list({ prefix: "img:" })).blobs.map((x) => x.key.slice(4))); for (const im of part.images || []) if (need.has(im.id) && !haveImg.has(im.id)) await set("img:" + im.id, { d: im.d }); }
-      if (n) await reindex();
-      return json({ ok: true, added: n, already, deleted: del, next: from + STEP < part.lessons.length ? from + STEP : null });
+      if (n || upd) await reindex();
+      return json({ ok: true, added: n, updated: upd, already, deleted: del, next: from + STEP < part.lessons.length ? from + STEP : null });
     }
     if (action === "importLessons") {
       for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }

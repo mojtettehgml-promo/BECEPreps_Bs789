@@ -109,7 +109,25 @@ def build(id_,verbose=True):
     elif allq:
         base=out[0][1]; out.append((999,{'subject':base['subject'],'level':base['level'],'topic':base['topic'],'kind':'test','title':'Topic test','emoji':'🏆','order':900,'status':'published','pages':[],'questions':allq,'source':base['source']}))
     lessons=[l for i,l in out]
-    for n,l in enumerate(lessons): l['id']='b7-%s-%02d'%(id_,n+1)
+    # keep the ids that v1.3.0 used (so lessons already added to an app are recognised); new lessons get new numbers
+    idf=os.path.join(HERE,'data','ids_v130.json'); oldmap={}
+    if os.path.exists(idf):
+        for lid,kind,title in json.load(open(idf)).get(id_,[]): oldmap.setdefault((kind,title),lid)
+    used=set(); top=max([int(v.rsplit('-',1)[1]) for v in oldmap.values()]+[0])
+    for l in lessons:
+        k=oldmap.get((l['kind'],l['title']))
+        if k and k not in used: l['id']=k; used.add(k)
+    # a lesson that was renamed (one old id left over, one new lesson left over) keeps its old id
+    miss=[lid for lid in dict.fromkeys(oldmap.values()) if lid not in used]; fresh=[l for l in lessons if 'id' not in l]
+    if miss and len(miss)==len(fresh):
+        for l,lid in zip(fresh,miss): l['id']=lid; used.add(lid)
+    for l in lessons:
+        if 'id' not in l or l['id'] not in used:
+            top+=1; l['id']='b7-%s-%02d'%(id_,top)
+            if os.path.exists(idf): print('   NEW lesson id',l['id'],l['title'])
+    if os.path.exists(idf):
+        for (kind,title),lid in oldmap.items():
+            if lid not in used: print('   MISSING old lesson',lid,title)
     # drop learn lessons that ended up empty
     stats=dict(mini=sum(l['kind']=='learn' for l in lessons),mcq=sum(q['t']=='mcq' for q in allq),st=sum(q['t']=='st' for q in allq),dropped=len(dropped))
     if verbose:

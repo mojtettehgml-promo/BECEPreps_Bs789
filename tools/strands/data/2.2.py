@@ -31,4 +31,7 @@ X("Think about everything you have learned about the housefly",
    "They feed on waste, rotten food, manure and dead animals::waste,rotten,manure,dead,rubbish|They pick up germs and carry them to food::germs,legs,carry,spread,food"),
   (2,"Dysentery and food poisoning.","Dysentery::dysentery,diarrhoea|Food poisoning::food poisoning,poison"),
   (3,"Cover food and keep waste in closed bins; dispose of rubbish quickly; keep kitchens, compounds and toilets clean; use screens or traps.",STEPS)),
+S("Describe how the body of a housefly is suited to carrying germs",3,"The body and legs are covered with fine hairs and the feet have sticky pads, so germs from rubbish, faeces or rotten food stick to them. Its vomit and droppings can also carry germs.","Fine hairs on the body and legs::hair,hairs,hairy|Sticky pads on the feet::sticky,pad,pads,feet|Germs stick to them::stick,germs|Vomit and droppings carry germs::vomit,dropping,droppings"),
+S("Explain how a housefly feeds on solid food",2,"A fly cannot chew solid food. It spits a drop of digestive juice onto the food to soften it and then sucks up the liquid.","It cannot chew solid food::cannot chew,can not chew,not chew,no chewing|It spits digestive juice to soften the food::spit,spits,digestive juice,juice,saliva,soften,liquid|It sucks up the liquid::suck,sucks,sucked"),
+S("Name two diseases spread by houseflies",2,"Cholera and typhoid fever.","Cholera::cholera|Typhoid fever::typhoid"),
 ]

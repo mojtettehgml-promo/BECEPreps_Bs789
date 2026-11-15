@@ -64,4 +64,7 @@ S("Explain why the efficiency of a machine is always less than 100 percent",2,"S
   "Some work is wasted overcoming friction and lifting moving parts::friction,wasted,waste,moving parts|It appears as heat and sound so output is less than input::heat,sound,less,output,input"),
 S("Why is the efficiency of a machine always less than 100 percent?",2,"Some work is wasted overcoming friction and appears as heat and sound.","Some work is wasted overcoming friction::friction,wasted,waste|As heat and sound::heat,sound"),
 S("Describe two ways of improving the efficiency of a bicycle",2,"Oil or grease the chain and moving parts to reduce friction; keep it clean and free of rust; service it regularly.",IMPR),
+S("Name three magnetic materials",3,"Any three of: iron, steel, nickel and cobalt.","Names magnetic materials::iron,steel,nickel,cobalt"),
+S("State two ways of demagnetising a magnet",2,"Any two of: heating it strongly, hammering it, or placing it in a coil that carries an alternating current.","Heating strongly::heat,heating,heated|Hammering::hammer,hammering,hit|Coil with alternating current::alternating,coil,a.c,ac"),
+S("A learner wants to keep two bar magnets strong",3,"Store the bar magnets in a pair with unlike (opposite) poles together and a piece of iron across the ends. Keep them away from heat and do not drop them.","Store in pairs with opposite poles together::pair,pairs,opposite,unlike|A piece of iron across the ends::iron,keeper|Keep away from heat and do not drop them::heat,drop,dropped"),
 ]
