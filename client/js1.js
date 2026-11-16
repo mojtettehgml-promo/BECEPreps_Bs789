@@ -1,4 +1,4 @@
-const APP_VERSION='v1.6.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.6.1',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -56,7 +56,18 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const box=document.createElement('div');box.className='confetti';box.setAttribute('aria-hidden','true');const E=['🎉','⭐','✨','🌟','🎊','🏅'];
   for(let i=0;i<26;i++){const s=document.createElement('span');s.textContent=E[i%E.length];s.style.left=(Math.random()*100)+'vw';s.style.animationDelay=(Math.random()*.8)+'s';s.style.fontSize=(18+Math.random()*18)+'px';box.appendChild(s)}
   document.body.appendChild(box);setTimeout(()=>box.remove(),3600)}
-let AC=null;function beep(kind){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const seq=kind==='ok'?[[660,0],[880,.12]]:kind==='win'?[[523,0],[659,.12],[784,.24],[1046,.36]]:[[220,0]];seq.forEach(([f,t])=>{const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='triangle';g.gain.setValueAtTime(.12,AC.currentTime+t);g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+t+.25);o.connect(g);g.connect(AC.destination);o.start(AC.currentTime+t);o.stop(AC.currentTime+t+.26)})}catch(e){}}
+let AC=null,LASTV={};
+/* v1.6.0: softer, varied sounds (bell-like tones with a gentle shimmer; a different chime is picked each time) */
+function beep(kind){if(!S.sound)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  const note=(f,t,d,v,type)=>{const t0=AC.currentTime+t;[[1,1],[2,.28],[3,.1]].forEach(([m,a],k)=>{const o=AC.createOscillator(),g=AC.createGain();o.type=k?'sine':(type||'sine');o.frequency.value=f*m;g.gain.setValueAtTime(0.0001,t0);g.gain.linearRampToValueAtTime(v*a,t0+.012);g.gain.exponentialRampToValueAtTime(.0008,t0+d);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+d+.05)})};
+  const pick=a=>{let n;do{n=Math.floor(Math.random()*a.length)}while(a.length>1&&n===LASTV[kind]);LASTV[kind]=n;return a[n]};
+  const P={
+   ok:[[[659,0],[784,.1],[988,.2]],[[880,0],[1175,.11]],[[523,0],[659,.09],[784,.18]],[[784,0],[1047,.1],[1319,.2]],[[698,0],[880,.1],[1047,.2]]],
+   no:[[[392,0],[330,.16]],[[349,0],[294,.18]],[[311,0],[262,.18]]],
+   win:[[[523,0],[659,.12],[784,.24],[1047,.36],[1319,.5]],[[523,0],[587,.1],[659,.2],[784,.3],[880,.4],[1047,.5]],[[392,0],[523,.12],[659,.24],[784,.36],[1047,.5]]],
+   star:[[[1047,0],[1319,.07],[1568,.14],[2093,.21]],[[1175,0],[1568,.08],[1976,.16]]],
+   tap:[[[740,0]],[[660,0]]]}[kind]||[[[660,0]]];
+  const seq=pick(P),soft=kind==='no'||kind==='tap';seq.forEach(([f,t])=>note(f,t,kind==='win'?.55:soft?.4:.38,soft?.07:.11,kind==='win'?'triangle':'sine'))}catch(e){}}
 /* ---- listen (text to speech) ---- */
 const canSpeak=()=>'speechSynthesis' in window;
 function speak(text){if(!canSpeak())return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(plain(text));u.rate=.92;speechSynthesis.speak(u)}
@@ -154,7 +165,7 @@ async function openLesson(id,pg){
     ${last?`<div class="res" id="fin"><div class="stars">⭐⭐</div><h3>Mini-lesson done!</h3><div class="actions" style="justify-content:center">${L.questions.length?'<button class="btn primary big" id="go">Quick check 🚀</button>':''}${nextL?`<button class="btn ${L.questions.length?'':'primary big'}" id="nl">Next mini-lesson ▶</button>`:testL?'<button class="btn primary big" id="tt">Take the topic test 🏆</button>':''}<button class="btn" id="bk2">Back to the path</button></div></div>`:''}</main>`;
     $('#bk').onclick=()=>{stopSpeak();subject(L.subject)};const ls=$('#ls');if(ls)ls.onclick=()=>speak((p.title?p.title+'. ':'')+p.body);
     $('#pv').onclick=()=>{stopSpeak();i--;paint();window.scrollTo(0,0)};const nx=$('#nx');if(nx)nx.onclick=()=>{stopSpeak();i++;paint();window.scrollTo(0,0)};
-    if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('ok');confetti();toast('⭐⭐ +2 stars for reading!')}
+    if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('star');confetti();toast('⭐⭐ +2 stars for reading!')}
       const g=$('#go');if(g)g.onclick=()=>{stopSpeak();lessonTest(L)};const nl=$('#nl');if(nl)nl.onclick=()=>{stopSpeak();openLesson(nextL.id)};const tt=$('#tt');if(tt)tt.onclick=()=>{stopSpeak();openLesson(testL.id)};$('#bk2').onclick=()=>{stopSpeak();subject(L.subject)}}
     let x0=null;const rd=$('#rd');rd.ontouchstart=e=>{x0=e.touches[0].clientX};rd.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<70)return;if(dx<0&&i<pages.length-1){stopSpeak();i++;paint()}else if(dx>0&&i>0){stopSpeak();i--;paint()}}};
   paint()}

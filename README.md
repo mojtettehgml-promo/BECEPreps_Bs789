@@ -1,6 +1,13 @@
 # BECE Prep Zone — v1.2.1 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
+## v1.6.1: reading flow, readability and sounds
+
+- After a quick check on the last mini-lesson of a topic, the result screen now offers **Take the topic test** instead of only "Back to the path".
+- Quick check: darker, clearer text on the answer feedback and option colours; the "+2 stars" message and confetti are cleared when the quick check starts so they no longer cover the question.
+- Answer explanations in Basic 8 and Basic 9 now show only a sentence from the notes that really contains the correct answer (table rows are no longer used). Questions with no matching sentence show just the correct answer.
+- Sounds: several soft, bell-like chimes for correct answers, a gentle two-note sound for wrong answers, a sparkle for finishing a mini-lesson and a longer fanfare for a good score. A different chime is chosen each time.
+
 ## v1.6.0: Basic 9 notes, three Basic 7 additions, new home page
 
 - **JHS 3 (Basic 9) Integrated Science:** 5 strand books, 60 lessons, 257 mini-lessons and 600 multiple-choice questions. The full reading notes are kept, including tables, the "added notes" check questions and the "Going further" notes. Answer keys for the multiple-choice questions were worked out from the notes; each answer has an explanation taken from the notes. True/false, short answer, practical, application and synthesis questions are not included (no model answers were supplied). Upload them from **Lessons > Upload questions** when you have them.

@@ -158,3 +158,9 @@ body.bgfun #app,body.bgfun header.hero,body.bgfun main{position:relative;z-index
 .subj .sprogbar{display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.3);overflow:hidden;margin-top:2px}.subj .sprogbar i{display:block;height:100%;background:#fff;border-radius:99px}
 .subj::before{content:"";position:absolute;right:-24px;bottom:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14)}.subj{position:relative;overflow:hidden}
 .hello{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}.hello .pill{cursor:default}
+
+/* v1.6.0: quick-check readability */
+.qn{color:color-mix(in srgb,var(--brand2) 55%,#000)}
+.fbk{border-left:6px solid transparent;line-height:1.5}.fbk.ok{color:#055a43;border-left-color:var(--ok)}.fbk.no{color:#8f1a2b;border-left-color:var(--bad)}
+.fbk .rich,.fbk .rich *{color:var(--ink);font-weight:400}.fbk .rich b,.fbk .rich strong{font-weight:700}
+.opt{color:var(--ink)}.opt.right{color:#04402f}.opt.wrong{color:#6f1220}
