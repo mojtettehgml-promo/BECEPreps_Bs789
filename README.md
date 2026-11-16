@@ -107,3 +107,9 @@ Learners tab (approve, see passwords with the vault key, new password, reset pro
 
 ## Local test
 `npm install`, create `.dev.vars` (the three secrets), `npx wrangler dev`. Tests: `npm test`.
+
+## v1.6.2
+- Quick check: lessons with few or no multiple-choice questions now borrow questions from the same topic, and the quick check never sends the learner back to the topic list.
+- Topics are coloured blocks in a grid; tapping one opens its own page with the mini-lessons as blocks. Every back button returns to the right page.
+- Pages are wider on big screens and use multi-column block grids.
+- Brighter theme colours (text contrast kept readable).

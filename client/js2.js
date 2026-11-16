@@ -65,12 +65,12 @@ const starRow=pct=>pct>=80?'⭐⭐⭐':pct>=50?'⭐⭐☆':pct>=20?'⭐☆☆':'
 const shufMcq=q=>{if(q.o.some(t=>/\b(all|none) of the above\b|\bboth\b/i.test(t)))return q;const idx=shuffle(q.o.map((_,i)=>i));return{...q,o:idx.map(i=>q.o[i]),c:idx.indexOf(q.c)}};
 async function lessonTest(L){
   const isT=L.kind==='test';let pool=L.questions.map(q=>({...q,lid:L.id}));
-  if(isT){const r=await api('subjectQs',{subject:L.subject,level:lvlOf(L),bank:true});if(r.ok){const seen=new Set(pool.map(q=>normA(q.q)));r.questions.filter(q=>(q.topic||'')===(L.topic||'')).forEach(q=>{const k=normA(q.q);if(!seen.has(k)){seen.add(k);pool.push(q)}})}}
-  const nMc=isT?8:5,nSt=isT?3:1,mc=shuffle(pool.filter(q=>q.t==='mcq')).slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=shuffle(pool.filter(q=>q.t==='st')).slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=shuffle(pool.filter(q=>q.t==='fib')).slice(0,2).map(q=>({k:'fib',q,lid:q.lid}));
+  if(isT||pool.filter(q=>q.t==='mcq').length<5){const r=await api('subjectQs',{subject:L.subject,level:lvlOf(L),bank:true});if(r.ok){const seen=new Set(pool.map(q=>normA(q.q)));r.questions.filter(q=>(q.topic||'')===(L.topic||'')).forEach(q=>{const k=normA(q.q);if(!seen.has(k)){seen.add(k);pool.push(q)}})}}
+  const pick=t=>{const f=pool.filter(q=>q.t===t);return [...shuffle(f.filter(q=>q.lid===L.id)),...shuffle(f.filter(q=>q.lid!==L.id))]};const nMc=isT?8:5,nSt=isT?3:1,mc=pick('mcq').slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=pick('st').slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=pick('fib').slice(0,2).map(q=>({k:'fib',q,lid:q.lid}));
   const items=[...mc,...fb,...st];
-  if(!items.length){toast('This lesson has no questions yet.');return subject(L.subject)}
+  if(!items.length){toast('No questions for this topic yet.');return L.pages.length?openLesson(L.id,L.pages.length-1):backTo(L)}
   const before=starsTotal();document.querySelectorAll('.toast,.confetti').forEach(e=>e.remove());
-  runQuiz({items,instant:true,onExit:()=>L.pages.length?openLesson(L.id,L.pages.length-1):subject(L.subject),onDone:res=>{
+  runQuiz({items,instant:true,onExit:()=>L.pages.length?openLesson(L.id,L.pages.length-1):backTo(L),onDone:res=>{
     const cnt=k=>({c:res.filter(r=>r.it.k===k&&r.ok).length,t:res.filter(r=>r.it.k===k).length}),m=cnt('mcq'),f=cnt('fib'),st=res.filter(r=>r.it.k==='st'),ss=st.reduce((a,r)=>a+r.s,0),stt=st.reduce((a,r)=>a+r.t,0);
     const rc=rec(L.id),b=rc.b=rc.b||{};b.mcq=Math.max(b.mcq||0,m.c);b.fib=Math.max(b.fib||0,f.c);b.st=Math.max(b.st||0,ss);rc.read=true;rc.last=Date.now();
     addMistakes(res);clearMistakes(res);touchStreak();queueSave();
@@ -78,8 +78,8 @@ async function lessonTest(L){
     window.scrollTo(0,0);if(pct>=60){confetti();beep('win')}
     app.innerHTML=`<header class="hero"><div class="wrap"><h1>${esc(L.emoji)} ${esc(L.title)}</h1><p class="lede">Test finished</p></div></header><main class="wrap"><div class="res"><div class="stars" aria-hidden="true">${starRow(pct)}</div><div class="big">${pct}%</div><p><b>${pct>=80?'Brilliant work!':pct>=50?'Good effort!':'Keep going, you can do it!'}</b>${gain>0?` You earned <b>${gain} new star${gain>1?'s':''}</b> ⭐`:''}</p>
     <div class="chips" style="justify-content:center">${m.t?`<span class="cchip">Multiple choice ${m.c}/${m.t}</span>`:''}${f.t?`<span class="cchip">Fill-in ${f.c}/${f.t}</span>`:''}${stt?`<span class="cchip">Structured ${ss}/${stt}</span>`:''}</div>
-    <div class="actions" style="justify-content:center"><button class="btn primary" id="again">Try again 🔁</button>${L.pages.length?'<button class="btn" id="rd">Read again 📖</button>':''}${nx?'<button class="btn good" id="nxl">Next mini-lesson ▶</button>':(tl&&!isT?'<button class="btn good" id="ttl">Take the topic test 🏆</button>':'')}<button class="btn" id="bk">Back to the path</button></div></div></main>${nav('home')}`;wireNav();
-    $('#again').onclick=()=>lessonTest(L);const rdb=$('#rd');if(rdb)rdb.onclick=()=>openLesson(L.id);$('#bk').onclick=()=>subject(L.subject);const n=$('#nxl');if(n)n.onclick=()=>openLesson(nx.id);const tb=$('#ttl');if(tb)tb.onclick=()=>openLesson(tl.id)}})}
+    <div class="actions" style="justify-content:center"><button class="btn primary" id="again">Try again 🔁</button>${L.pages.length?'<button class="btn" id="rd">Read again 📖</button>':''}${nx?'<button class="btn good" id="nxl">Next mini-lesson ▶</button>':(tl&&!isT?'<button class="btn good" id="ttl">Take the topic test 🏆</button>':'')}<button class="btn" id="bk">Back to the topic</button></div></div></main>${nav('home')}`;wireNav();
+    $('#again').onclick=()=>lessonTest(L);const rdb=$('#rd');if(rdb)rdb.onclick=()=>openLesson(L.id);$('#bk').onclick=()=>backTo(L);const n=$('#nxl');if(n)n.onclick=()=>openLesson(nx.id);const tb=$('#ttl');if(tb)tb.onclick=()=>openLesson(tl.id)}})}
 /* ---- timed subject challenge ---- */
 async function mock(sid){
   const r=await api('subjectQs',{subject:sid,level:S.level});if(!r.ok)return toast(r.error);

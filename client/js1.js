@@ -1,4 +1,4 @@
-const APP_VERSION='v1.6.1',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.6.2',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -138,34 +138,43 @@ async function home(){
   $('#jq').onclick=()=>{const c=SUBJ.map(s=>[s,mine().filter(l=>l.subject===s.id&&l.nq).length]).sort((a,b)=>b[1]-a[1])[0];c&&c[1]?bank(c[0].id):toast('Questions are on their way. Come back soon!')};
   $('#jx').onclick=()=>examHub()}
 function topicsOf(sid){const ls=mine().filter(l=>l.subject===sid&&l.kind!=='bank'),map=new Map();ls.forEach(l=>{const t=l.topic||'More lessons';if(!map.has(t))map.set(t,[]);map.get(t).push(l)});return [...map.entries()].sort((x,y)=>x[0].localeCompare(y[0],undefined,{numeric:true})).map(([t,items])=>({t,learn:items.filter(x=>x.kind!=='test'),test:items.filter(x=>x.kind==='test')}))}
-const OPEN_T=new Set();
+const TCOL=[['#7c3aed','#d6338a'],['#0272b8','#0a8aa8'],['#e2520a','#d92d2d'],['#047857','#5a9a0c'],['#4f46e5','#0272b8'],['#be1fd0','#e2520a']];
+const subjHero=(s,total,tp,back)=>`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">${back}</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${lvlName(S.level)} · ${total?`${tp.length} topic${tp.length>1?'s':''}, ${total} mini-lessons`:s.desc}</p></div></div></div></header>`;
 async function subject(id){
   window.scrollTo(0,0);stopSpeak();const s=subj(id);await loadLessons();
   const tp=topicsOf(id),total=tp.reduce((a,t)=>a+t.learn.length,0);
-  if(!OPEN_T.size){const first=tp.find(t=>t.learn.some(l=>!doneL(l)))||tp[0];if(first)OPEN_T.add(first.t)}
-  app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Home</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div><h1>${s.title}</h1><p class="lede">${lvlName(S.level)} · ${total?`${tp.length} topic${tp.length>1?'s':''}, ${total} mini-lessons`:s.desc}</p></div></div></div></header>
-  <main class="wrap">${levelPills()}${tp.length?tp.map((t,ti)=>{const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0;return `<details class="topic" data-t="${esc(t.t)}" ${OPEN_T.has(t.t)?'open':''}><summary><span class="tdot" style="background:linear-gradient(130deg,${s.c1},${s.c2})">${dn===t.learn.length&&t.learn.length?'✓':ti+1}</span><span class="ttxt"><b>${esc(t.t)}</b><small>${dn}/${t.learn.length} done${t.test.length?' · topic test':''}</small><span class="tbar"><i style="width:${pct}%"></i></span></span></summary>
-  <div class="path">${t.learn.map((l,i)=>{const r=(P().lessons||{})[l.id]||{};return `<button class="step ${r.read?'read':''}" data-l="${l.id}"><span class="sno">${r.read?'✓':esc(l.emoji||EM[i%EM.length])}</span><span class="stx"><b>${esc(l.title)}</b><small>${l.np} card${l.np>1?'s':''} · about ${Math.max(1,l.np)} min${l.nq?` · quick check`:''}</small></span></button>`}).join('')}
-  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="step test ${r.read?'read':''}" data-l="${l.id}"><span class="sno">🏆</span><span class="stx"><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small></span></button>`}).join('')}</div></details>`}).join('')+`<div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div>`+`<div id="exw"></div>`
+  app.innerHTML=subjHero(s,total,tp,'← Home')+`<main class="wrap wide">${levelPills()}${tp.length?`<h2 class="sec">Pick a topic</h2><div class="tgrid">${tp.map((t,ti)=>{const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0,c=TCOL[ti%TCOL.length],all=t.learn.length&&dn===t.learn.length;return `<button class="tblock ${all?'full':''}" data-t="${esc(t.t)}" style="--t1:${c[0]};--t2:${c[1]}"><span class="tn">${all?'✓':ti+1}</span><b>${esc(t.t)}</b><small>${dn}/${t.learn.length} done${t.test.length?' · topic test':''}</small><span class="tbar"><i style="width:${pct}%"></i></span></button>`}).join('')}</div>
+  <div class="tiles" style="margin:18px 0 30px"><button class="tile" id="qb"><span class="tic">🎯</span><b>Question bank</b><small id="qbs">Random practice questions</small></button><button class="tile" id="mk"><span class="tic">⏱️</span><b>Subject challenge</b><small>A timed mix of questions</small></button></div><div id="exw"></div>`
   :`<div class="panel soon"><div style="font-size:54px">🚧</div><h3>Lessons are on their way!</h3><p class="hint">Your teacher is getting ${esc(s.title)} for ${lvlName(S.level)} ready. Come back soon.</p></div><div id="exw"></div>`}</main>${nav('home')}`;
-  wireNav();wireLevel(()=>{OPEN_T.clear();subject(id)});$('#bk').onclick=home;
-  app.querySelectorAll('details.topic').forEach(d=>d.ontoggle=()=>{d.open?OPEN_T.add(d.dataset.t):OPEN_T.delete(d.dataset.t)});
-  app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l));const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}examInfo(id)}
+  wireNav();wireLevel(()=>subject(id));$('#bk').onclick=home;
+  app.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>topicPage(id,b.dataset.t));
+  const mk=$('#mk');if(mk)mk.onclick=()=>mock(id);const qb=$('#qb');if(qb){qb.onclick=()=>bank(id);bankInfo(id)}examInfo(id)}
+/* a topic opens as its own page: pick a mini-lesson */
+async function topicPage(id,tname){
+  window.scrollTo(0,0);stopSpeak();const s=subj(id);await loadLessons();
+  const tp=topicsOf(id),ti=tp.findIndex(x=>x.t===tname),t=tp[ti];if(!t)return subject(id);
+  const dn=t.learn.filter(doneL).length,pct=t.learn.length?Math.round(100*dn/t.learn.length):0,c=TCOL[ti%TCOL.length];
+  const nextL=t.learn.find(l=>!doneL(l));
+  app.innerHTML=`<header class="hero" style="--brand:${c[0]};--brand2:${c[1]}">${deco(s.id)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← ${esc(s.title)} topics</button></div><div class="herorow"><div class="mascot" aria-hidden="true">${s.mas}</div><div style="flex:1"><h1>${esc(t.t)}</h1><p class="lede">${dn}/${t.learn.length} mini-lessons done${t.test.length?' · topic test at the end':''}</p><span class="tbar big"><i style="width:${pct}%"></i></span></div></div></div></header>
+  <main class="wrap wide"><h2 class="sec">Pick a mini-lesson</h2><div class="lgrid">${t.learn.map((l,i)=>{const r=(P().lessons||{})[l.id]||{},cc=TCOL[(ti+i)%TCOL.length];return `<button class="lblock ${r.read?'read':''}" data-l="${l.id}" style="--t1:${cc[0]};--t2:${cc[1]}"><span class="lno">${r.read?'✓':esc(l.emoji||EM[i%EM.length])}</span><b>${esc(l.title)}</b><small>${l.np} card${l.np>1?'s':''} · about ${Math.max(1,l.np)} min</small><span class="lgo">${r.read?'Read again':nextL&&nextL.id===l.id?'Start here ▶':'Open ▶'}</span></button>`}).join('')}
+  ${t.test.map(l=>{const r=(P().lessons||{})[l.id]||{},b=r.b||{},st=(b.mcq||0)+(b.fib||0)+(b.st||0);return `<button class="lblock test" data-l="${l.id}" style="--t1:#e2520a;--t2:#d92d2d"><span class="lno">🏆</span><b>${esc(l.title)}</b><small>${l.nq} question${l.nq===1?'':'s'}${st?` · best ⭐ ${st}`:''}</small><span class="lgo">Take the test ▶</span></button>`}).join('')}</div></main>${nav('home')}`;
+  wireNav();$('#bk').onclick=()=>subject(id);app.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>openLesson(b.dataset.l))}
+const backTo=L=>L.topic?topicPage(L.subject,L.topic):subject(L.subject);
 /* ---- lesson reader: short, colourful cards ---- */
 const CARD=['#6d3fe0','#e8477a','#0a9b7a','#e07a00','#0b6fc2','#b01e95'];
 async function openLesson(id,pg){
   const r=await api('lessonGet',{id});if(!r.ok){toast(r.error);return}
   const L=r.lesson,s=subj(L.subject);window.scrollTo(0,0);
   if(L.kind==='test'||!L.pages.length)return lessonTest(L);
-  let i=pg||0;const pages=L.pages,sib=S.lessons.filter(x=>x.subject===L.subject&&lvlOf(x)===lvlOf(L)&&(x.topic||'')===(L.topic||'')),at=sib.findIndex(x=>x.id===L.id),nextL=sib.slice(at+1).find(x=>x.kind!=='test'),testL=sib.find(x=>x.kind==='test');
+  let i=pg||0;const pages=L.pages,sib=S.lessons.filter(x=>x.subject===L.subject&&lvlOf(x)===lvlOf(L)&&(x.topic||'')===(L.topic||'')),at=sib.findIndex(x=>x.id===L.id),nextL=sib.slice(at+1).find(x=>x.kind!=='test'),testL=sib.find(x=>x.kind==='test'),hasQ=L.questions.length||sib.some(x=>x.nq);
   const paint=()=>{const p=pages[i],last=i===pages.length-1,col=CARD[(at+i)%CARD.length];
     app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id,1)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← ${esc(L.topic||s.title)}</button>${canSpeak()?'<button class="btn sm" id="ls">🔊 Listen</button>':''}</div><h1>${esc(L.emoji)} ${esc(L.title)}</h1><div class="lpb" aria-label="Page ${i+1} of ${pages.length}">${pages.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('')}</div></div></header>
     <main class="wrap"><article class="reader card" id="rd" style="--cc:${col}" aria-live="polite">${p.title?`<h2>${esc(p.title)}</h2>`:''}<div class="rich">${rich(p.body)}</div></article>
     <div class="actions" style="justify-content:space-between"><button class="btn" id="pv" ${i?'':'disabled'}>◀ Back</button>${last?'':'<button class="btn primary big" id="nx">Next ▶</button>'}</div>
-    ${last?`<div class="res" id="fin"><div class="stars">⭐⭐</div><h3>Mini-lesson done!</h3><div class="actions" style="justify-content:center">${L.questions.length?'<button class="btn primary big" id="go">Quick check 🚀</button>':''}${nextL?`<button class="btn ${L.questions.length?'':'primary big'}" id="nl">Next mini-lesson ▶</button>`:testL?'<button class="btn primary big" id="tt">Take the topic test 🏆</button>':''}<button class="btn" id="bk2">Back to the path</button></div></div>`:''}</main>`;
-    $('#bk').onclick=()=>{stopSpeak();subject(L.subject)};const ls=$('#ls');if(ls)ls.onclick=()=>speak((p.title?p.title+'. ':'')+p.body);
+    ${last?`<div class="res" id="fin"><div class="stars">⭐⭐</div><h3>Mini-lesson done!</h3><div class="actions" style="justify-content:center">${hasQ?'<button class="btn primary big" id="go">Quick check 🚀</button>':''}${nextL?`<button class="btn ${hasQ?'':'primary big'}" id="nl">Next mini-lesson ▶</button>`:testL?'<button class="btn primary big" id="tt">Take the topic test 🏆</button>':''}<button class="btn" id="bk2">Back to the topic</button></div></div>`:''}</main>`;
+    $('#bk').onclick=()=>{stopSpeak();backTo(L)};const ls=$('#ls');if(ls)ls.onclick=()=>speak((p.title?p.title+'. ':'')+p.body);
     $('#pv').onclick=()=>{stopSpeak();i--;paint();window.scrollTo(0,0)};const nx=$('#nx');if(nx)nx.onclick=()=>{stopSpeak();i++;paint();window.scrollTo(0,0)};
     if(last){const rc=rec(L.id);if(!rc.read){rc.read=true;touchStreak();queueSave();beep('star');confetti();toast('⭐⭐ +2 stars for reading!')}
-      const g=$('#go');if(g)g.onclick=()=>{stopSpeak();lessonTest(L)};const nl=$('#nl');if(nl)nl.onclick=()=>{stopSpeak();openLesson(nextL.id)};const tt=$('#tt');if(tt)tt.onclick=()=>{stopSpeak();openLesson(testL.id)};$('#bk2').onclick=()=>{stopSpeak();subject(L.subject)}}
+      const g=$('#go');if(g)g.onclick=()=>{stopSpeak();lessonTest(L)};const nl=$('#nl');if(nl)nl.onclick=()=>{stopSpeak();openLesson(nextL.id)};const tt=$('#tt');if(tt)tt.onclick=()=>{stopSpeak();openLesson(testL.id)};$('#bk2').onclick=()=>{stopSpeak();backTo(L)}}
     let x0=null;const rd=$('#rd');rd.ontouchstart=e=>{x0=e.touches[0].clientX};rd.ontouchend=e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0;x0=null;if(Math.abs(dx)<70)return;if(dx<0&&i<pages.length-1){stopSpeak();i++;paint()}else if(dx>0&&i>0){stopSpeak();i--;paint()}}};
   paint()}
