@@ -1,4 +1,4 @@
-const APP_VERSION='v1.5.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.6.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -109,12 +109,23 @@ function wireLevel(after){app.querySelectorAll('[data-lv]').forEach(b=>b.onclick
 async function home(){
   window.scrollTo(0,0);stopSpeak();document.body.style.paddingBottom='70px';
   const [,mr]=await Promise.all([loadLessons(),api('me')]);if(mr&&mr.ok)S.asgUnseen=mr.asgUnseen||0;
+  document.body.classList.add('bgfun');
   const n=starsTotal(),lv=levelOf(n),sk=streakNow(),mis=(P().mistakes||[]).length;
+  let nextL=null;for(const sj of SUBJ){const tp=topicsOf(sj.id);for(const t of tp){const f=t.learn.find(l=>!doneL(l));if(f){nextL=f;break}}if(nextL)break}
   app.innerHTML=`<header class="hero">${deco('home')}<div class="wrap"><div class="herorow"><div class="mascot" aria-hidden="true">🦉</div><div style="flex:1"><h1>Hi ${esc(firstName())}! 👋</h1><p class="lede">${sk>1?`${sk} days in a row! Keep your streak going.`:'Pick a subject and start your adventure.'}</p></div></div>
   <div class="stats"><div class="stat"><b>⭐ ${n}</b><small>stars</small></div><div class="stat"><b>🔥 ${sk}</b><small>day streak</small></div><div class="stat lvl"><b>${lv.L[2]} ${lv.L[1]}</b><small>${lv.nx?`${lv.nx[0]-n} stars to ${lv.nx[1]}`:'Top level!'}</small><span class="sprog"><i style="width:${lv.pct}%"></i></span></div></div></div></header>
-  <main class="wrap">${levelPills()}<div class="subjgrid">${SUBJ.map(s=>{const ls=mine().filter(l=>l.subject===s.id&&l.kind!=='test'&&l.kind!=='bank'),done=ls.filter(doneL).length;return `<button class="subj" data-s="${s.id}" style="--c1:${s.c1};--c2:${s.c2}"><span class="mas" aria-hidden="true">${s.mas}</span><span class="sbody"><b>${s.title}</b><small>${s.desc}</small><span class="chips"><span class="cchip">${ls.length?`${done}/${ls.length} mini-lessons`:'Coming soon'}</span></span></span><span aria-hidden="true" style="font-size:24px">▶</span></button>`}).join('')}</div>
-  <div class="tiles"><button class="tile" id="tm"><span class="tic">🛠️</span><b>Fix my mistakes</b><small>${mis?mis+' to practise':'Nothing to fix. Great!'}</small></button><button class="tile" data-go="asg"><span class="tic">📬</span><b>Homework</b><small>${S.asgUnseen?S.asgUnseen+' new mark'+(S.asgUnseen>1?'s':''):'Hand in your work'}</small></button></div></main>${nav('home')}`;
-  wireNav();wireLevel(home);app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>subject(b.dataset.s));$('#tm').onclick=()=>mis?retryMistakes():toast('No mistakes to fix yet. 🎉')}
+  <main class="wrap">${levelPills()}<div class="subjgrid">${SUBJ.map(s=>{const ls=mine().filter(l=>l.subject===s.id&&l.kind!=='test'&&l.kind!=='bank'),done=ls.filter(doneL).length;return `<button class="subj" data-s="${s.id}" style="--c1:${s.c1};--c2:${s.c2}"><span class="mas" aria-hidden="true">${s.mas}</span><span class="sbody"><b>${s.title}</b><small>${s.desc}</small><span class="chips"><span class="cchip">${ls.length?`${done}/${ls.length} mini-lessons`:'Coming soon'}</span></span>${ls.length?`<span class="sprogbar"><i style="width:${Math.round(100*done/ls.length)}%"></i></span>`:''}</span><span aria-hidden="true" style="font-size:24px">▶</span></button>`}).join('')}</div>
+  <section class="jump"><h2>🚀 Jump in</h2><div class="jrow">
+   <button class="jb j1" id="jc"><span class="jic">▶️</span><b>Continue</b><small>${nextL?esc(nextL.title.slice(0,40)):'Pick a subject above'}</small></button>
+   <button class="jb j2" id="jq"><span class="jic">⚡</span><b>Quick quiz</b><small>Mixed questions, random every time</small></button>
+   <button class="jb j3" id="jx"><span class="jic">📝</span><b>Exam practice</b><small>Questions from exam papers</small></button>
+   <button class="jb j4" id="tm"><span class="jic">🛠️</span><b>Fix my mistakes</b><small>${mis?mis+' to practise':'Nothing to fix. Great!'}</small></button>
+   <button class="jb j5" data-go="asg"><span class="jic">📬</span><b>Homework</b><small>${S.asgUnseen?S.asgUnseen+' new mark'+(S.asgUnseen>1?'s':''):'Hand in your work'}</small></button></div></section></main>${nav('home')}`;
+  wireNav();wireLevel(home);app.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>subject(b.dataset.s));$('#tm').onclick=()=>mis?retryMistakes():toast('No mistakes to fix yet. 🎉');
+  {const j=$('.jump'),g=$('.subjgrid');if(j&&g)g.parentNode.insertBefore(j,g)}
+  $('#jc').onclick=()=>nextL?openLesson(nextL.id):toast('Pick a subject to start. 🌟');
+  $('#jq').onclick=()=>{const c=SUBJ.map(s=>[s,mine().filter(l=>l.subject===s.id&&l.nq).length]).sort((a,b)=>b[1]-a[1])[0];c&&c[1]?bank(c[0].id):toast('Questions are on their way. Come back soon!')};
+  $('#jx').onclick=()=>examHub()}
 function topicsOf(sid){const ls=mine().filter(l=>l.subject===sid&&l.kind!=='bank'),map=new Map();ls.forEach(l=>{const t=l.topic||'More lessons';if(!map.has(t))map.set(t,[]);map.get(t).push(l)});return [...map.entries()].sort((x,y)=>x[0].localeCompare(y[0],undefined,{numeric:true})).map(([t,items])=>({t,learn:items.filter(x=>x.kind!=='test'),test:items.filter(x=>x.kind==='test')}))}
 const OPEN_T=new Set();
 async function subject(id){

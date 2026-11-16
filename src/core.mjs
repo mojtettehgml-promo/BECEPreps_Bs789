@@ -12,7 +12,7 @@ const DEFAULT_SETTINGS = { mockq: 30, mockt: 45 };
 const THEMES = ["sunny", "candy", "ocean", "jungle"];
 const clientIp = (req) => String(req.headers.get("cf-connecting-ip") || "x").slice(0, 60);
 
-const normQ = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().slice(0, 200);
+const normQ = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9+\-*\/=<>^%]+/g, " ").trim().slice(0, 200);
 
 const json = (obj, status = 200) =>
   new Response(JSON.stringify(obj), { status, headers: { "content-type": "application/json", "cache-control": "no-store" } });

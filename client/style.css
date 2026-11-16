@@ -139,3 +139,22 @@ main.wrap{padding-bottom:110px}
 
 .sotop{position:fixed;top:max(8px,env(safe-area-inset-top));right:10px;z-index:80;background:rgba(255,255,255,.92);color:#b3261e;border:2px solid #f3c4c0;border-radius:999px;padding:6px 14px;font-weight:700;font-size:14px;box-shadow:0 2px 10px rgba(0,0,0,.18);cursor:pointer}
 [data-theme=dark] .sotop{background:rgba(30,30,40,.92);color:#ff9d96;border-color:#5a2f2c}
+
+/* v1.5.0: catchy page background, jump-in strip, progress bars */
+body.bgfun{background:
+ radial-gradient(900px 520px at 100% -8%,color-mix(in srgb,var(--brand2) 16%,transparent),transparent 62%),
+ radial-gradient(760px 520px at -10% 38%,color-mix(in srgb,var(--brand) 13%,transparent),transparent 62%),
+ radial-gradient(700px 480px at 105% 100%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 62%),var(--bg);background-attachment:fixed}
+body.bgfun::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.42;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cg stroke-width='3'%3E%3Cpath d='M40 30l6 14 15 1-11 10 4 15-14-8-14 8 4-15-11-10 15-1z' stroke='%23f5b63c' fill='%23ffe08a' fill-opacity='.55'/%3E%3Cg transform='translate(170 40)' stroke='%237c5ce6'%3E%3Cellipse rx='24' ry='9'/%3E%3Cellipse rx='24' ry='9' transform='rotate(60)'/%3E%3Cellipse rx='24' ry='9' transform='rotate(120)'/%3E%3Ccircle r='3.5' fill='%237c5ce6'/%3E%3C/g%3E%3Cpath d='M120 120h22M131 109v22' stroke='%23ff6b9a'/%3E%3Ccircle cx='215' cy='140' r='11' stroke='%232bb5a0'/%3E%3Ccircle cx='215' cy='140' r='3' fill='%232bb5a0' stroke='none'/%3E%3Cpath d='M30 150q9-14 18 0t18 0t18 0' stroke='%235aa9ff'/%3E%3Cpath d='M60 215l13 -22 13 22z' stroke='%23ff9a5a' fill='%23ffd0b0' fill-opacity='.5'/%3E%3Cg transform='translate(160 205)' stroke='%234aa8d8'%3E%3Cpath d='M-6 -20v14l-12 22q-2 6 4 6h28q6 0 4-6l-12-22v-14M-9 -20h18'/%3E%3Cpath d='M-12 10h24' stroke='%23ff6b9a'/%3E%3C/g%3E%3Ccircle cx='95' cy='60' r='4' fill='%23ff6b9a' stroke='none'/%3E%3Ccircle cx='235' cy='215' r='4' fill='%237c5ce6' stroke='none'/%3E%3Ccircle cx='15' cy='240' r='4' fill='%232bb5a0' stroke='none'/%3E%3C/g%3E%3C/svg%3E");background-size:260px 260px}
+[data-theme=dark] body.bgfun::before{opacity:.06}
+body.bgfun #app,body.bgfun header.hero,body.bgfun main{position:relative;z-index:1}
+.jump{margin:18px 0 6px}.jump h2{font-size:20px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.jrow{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;padding:2px 2px 12px;margin:0 -2px;-webkit-overflow-scrolling:touch}.jrow .jb{flex:0 0 158px;scroll-snap-align:start}@media(min-width:900px){.jrow{display:grid;grid-template-columns:repeat(5,1fr);overflow:visible}.jrow .jb{flex:none}}
+.jb{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:2px;text-align:left;border:0;border-radius:22px;padding:14px 14px 12px;color:#fff;cursor:pointer;box-shadow:var(--shadow);background:linear-gradient(135deg,var(--c1),var(--c2));transition:transform .15s}
+.jb:hover{transform:translateY(-3px) rotate(-.6deg)}.jb:active{transform:scale(.97)}
+.jb::after{content:"";position:absolute;right:-18px;top:-18px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.22)}
+.jb .jic{font-size:34px;line-height:1.1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.2))}.jb b{font-size:17px;line-height:1.2}.jb small{opacity:.96;font-size:13px;line-height:1.25}
+.jb.j1{--c1:#6d3fe0;--c2:#e8477a}.jb.j2{--c1:#f59e0b;--c2:#ef4444}.jb.j3{--c1:#0ea5e9;--c2:#6366f1}.jb.j4{--c1:#14b8a6;--c2:#22c55e}.jb.j5{--c1:#ec4899;--c2:#f97316}
+.subj .sprogbar{display:block;height:8px;border-radius:99px;background:rgba(255,255,255,.3);overflow:hidden;margin-top:2px}.subj .sprogbar i{display:block;height:100%;background:#fff;border-radius:99px}
+.subj::before{content:"";position:absolute;right:-24px;bottom:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.14)}.subj{position:relative;overflow:hidden}
+.hello{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 2px}.hello .pill{cursor:default}

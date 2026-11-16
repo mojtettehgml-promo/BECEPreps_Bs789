@@ -1,7 +1,7 @@
 /* =============== administrator =============== */
 let ADM_TAB='lessons';
 const nm_=s=>esc(s.fullName||s.username)+(s.fullName?` <span class="meta">(${esc(s.username)})</span>`:'');
-async function adminHome(tab){
+async function adminHome(tab){document.body.classList.remove('bgfun');
   if(tab)ADM_TAB=tab;window.scrollTo(0,0);document.body.style.paddingBottom='0';
   const r=await api('me');if(r.ok)S.pending=r.pending||0;
   app.innerHTML=`<header class="hero"><div class="wrap"><div class="topbar"><span class="brandn">🦉 ${APP_NAME} · Teacher</span><button class="btn sm" id="so">Sign out</button></div></div></header><main class="wrap" style="padding-bottom:40px"><div class="admtabs" role="tablist">${[['lessons','📚 Lessons'],['learners','👧 Learners'+(S.pending?` (${S.pending} new)`:'')],['exams','📝 Exams'],['asg','📬 Homework'],['set','⚙️ Settings & backup']].map(([k,l])=>`<button data-at="${k}" class="${ADM_TAB===k?'on':''}">${l}</button>`).join('')}</div><div id="ap"></div></main>`;

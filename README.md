@@ -1,6 +1,15 @@
 # BECE Prep Zone — v1.2.1 (Cloudflare)
 A child-friendly BECE revision app: **Integrated Science, Mathematics, Ghanaian Language (Ga) and Computing**, for **Basic 7, 8 and 9**. It starts empty; you add the topics.
 
+## v1.6.0: Basic 9 notes, three Basic 7 additions, new home page
+
+- **JHS 3 (Basic 9) Integrated Science:** 5 strand books, 60 lessons, 257 mini-lessons and 600 multiple-choice questions. The full reading notes are kept, including tables, the "added notes" check questions and the "Going further" notes. Answer keys for the multiple-choice questions were worked out from the notes; each answer has an explanation taken from the notes. True/false, short answer, practical, application and synthesis questions are not included (no model answers were supplied). Upload them from **Lessons > Upload questions** when you have them.
+- **Picture placeholders** in the Basic 9 books show to you (the teacher) as "Picture goes here". Learners do not see them.
+- **Basic 7 additions:** *Taking care of our solids* (1.1), the organic/inorganic amounts table (2.3) and ruminants, monogastrics and poultry in Ghana and in other countries (2.4). Existing lesson ids are unchanged.
+- **Home page:** picture-pattern background, a "Jump in" row (Continue, Quick quiz, Exam practice, Fix my mistakes, Homework), progress bars on subject cards and an Exam practice screen.
+- Option checking now keeps symbols such as + - / x = so that formula options (for example F = m x a and F = m / a) count as different.
+- Built-in lessons now total 800 (305 JHS 1, 218 JHS 2, 277 JHS 3). After uploading, open **Settings > Built-in lessons** and press the add button to bring in the new lessons, then the update button for the 3 changed Basic 7 topics.
+
 ## v1.5.0: JHS 1, 2 and 3 and exam papers
 
 - Learners choose **JHS 1, JHS 2 or JHS 3** when they sign up. JHS 1 and JHS 2 learners see only the lessons, questions and exams for their own year. JHS 3 learners (preparing for the exam) can open every year.
