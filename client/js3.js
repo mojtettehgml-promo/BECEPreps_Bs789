@@ -109,12 +109,13 @@ async function adminLessons(ap){
         for(const g of tops){const tk='t|'+s.id+'|'+lv+'|'+g.t,pub=g.a.filter(l=>l.status==='published').length;BK.push(g.a.map(l=>l.id));const bi=BK.length-1;
           g.a.sort((x,y)=>(+x.order||0)-(+y.order||0));
           h+=`<details class="gt" data-k="${tk}" ${q||(f.sub&&f.lv&&tops.length<=3)||f.open[tk]?'open':''}><summary><b>${esc(g.t)}</b> <span class="cnt">${g.a.length} lessons · ${pub} published</span></summary><div class="tact"><button class="btn sm" data-bk="${bi}:published">Publish all</button><button class="btn sm" data-bk="${bi}:draft">Unpublish all</button></div>`+
-            g.a.map(l=>`<div class="lrow ${f.last===l.id?'last':''}" id="r-${l.id}"><span class="lk" title="${l.kind}">${KI[l.kind]||'📖'}</span><div class="lt"><b>${esc(l.emoji||'')} ${esc(l.title)}</b><div class="meta">${l.kind==='test'?'topic test':l.kind==='bank'?'question bank':l.np+' card'+(l.np>1?'s':'')} · ${l.nq} question${l.nq===1?'':'s'} · #${l.order} <span class="badge ${l.status==='published'?'':'d'}">${l.status}</span></div></div><div class="ra"><button class="btn sm primary" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')+'</details>'}
+            g.a.map(l=>`<div class="lrow ${f.last===l.id?'last':''}" id="r-${l.id}"><span class="lk" title="${l.kind}">${KI[l.kind]||'📖'}</span><div class="lt"><b class="lnk" data-rd="${l.id}">${esc(l.emoji||'')} ${esc(l.title)}</b><div class="meta">${l.kind==='test'?'topic test':l.kind==='bank'?'question bank':l.np+' card'+(l.np>1?'s':'')} · ${l.nq} question${l.nq===1?'':'s'} · #${l.order} <span class="badge ${l.status==='published'?'':'d'}">${l.status}</span></div></div><div class="ra"><button class="btn sm primary" data-rd="${l.id}">📖 Read</button><button class="btn sm" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')+'</details>'}
         h+='</details>'}
       h+='</details>'}
     $('#alist').innerHTML=h||'<div class="panel"><p class="hint">No lessons match. Clear the search or choose All.</p></div>';
     const A=$('#alist');
     A.querySelectorAll('details[data-k]').forEach(d=>d.addEventListener('toggle',()=>{ADM_F.open[d.dataset.k]=d.open}));
+    A.querySelectorAll('[data-rd]').forEach(b=>b.onclick=()=>adminRead(b.dataset.rd));
     A.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{ADM_F.last=b.dataset.e;const x=await api('lessonGet',{id:b.dataset.e});if(x.ok)lessonEditor(x.lesson)});
     A.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{ADM_F.last=b.dataset.p;const x=await api('lessonStatus',{id:b.dataset.p,status:b.dataset.s});toast(x.ok?'Done':x.error);adminLessons(ap)});
     A.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this lesson? This cannot be undone.'))return;const x=await api('lessonDelete',{id:b.dataset.d});toast(x.ok?'Deleted':x.error);adminLessons(ap)});
@@ -134,6 +135,35 @@ async function adminLessons(ap){
     toast(ok+' draft'+(ok===1?'':'s')+' created');if(bad.length){adminLessons(ap);setTimeout(()=>{const u=$('#um');if(u)u.innerHTML=`<div class="msg err">${bad.map(esc).join('<br>')}</div>`},100)}else adminLessons(ap)};
   bookPanelWire(ap,()=>adminLessons(ap));qUploadWire(ap);
   }
+/* ---------- admin: read a lesson exactly as learners see it, and edit the page in place ---------- */
+async function adminRead(id,pg){
+  const r=await api('lessonGet',{id});if(!r.ok){toast(r.error);return}
+  const L=r.lesson,s=subj(L.subject);ADM_F.last=id;window.scrollTo(0,0);
+  const sib=(S.lessons||[]).filter(x=>x.subject===L.subject&&(x.level||'b7')===(L.level||'b7')&&(x.topic||'')===(L.topic||'')).sort((a,b)=>(+a.order||0)-(+b.order||0)),at=sib.findIndex(x=>x.id===L.id),prevL=at>0?sib[at-1]:null,nextL=at>=0&&at<sib.length-1?sib[at+1]:null;
+  let i=Math.min(pg||0,Math.max(0,L.pages.length-1)),editing=false;
+  const qh=q=>{const t=esc(String(q.q||''));if(q.t==='mcq')return `<li><b>${t}</b><div>${q.o.map((o,k)=>`<div class="${q.c===k?'qok':''}">${'ABCDE'[k]}. ${esc(o)}${q.c===k?' ✓':''}</div>`).join('')}</div></li>`;
+    if(q.t==='fib')return `<li><b>${t}</b><div class="qok">Answer: ${esc(q.a||'')}</div></li>`;
+    return `<li><b>${t}</b>${(q.parts||[]).map((p,k)=>`<div>(${'abcdefgh'[k]}) ${esc(p.q)} [${p.m}] <span class="qok">${esc(p.a||(p.ideas||[]).map(x=>x.t).join('; '))}</span></div>`).join('')}</li>`};
+  const paint=()=>{const p=L.pages[i]||{title:'',body:''},col=CARD[(Math.max(at,0)+i)%CARD.length],isT=!L.pages.length;
+    app.innerHTML=`<header class="hero" style="--brand:${s.c1};--brand2:${s.c2}">${deco(s.id,1)}<div class="wrap"><div class="topbar"><button class="btn sm" id="bk">← Lessons list</button><span class="brandn">Teacher view · ${lvlName(L.level)} · <span class="badge ${L.status==='published'?'':'d'}">${L.status}</span></span></div><h1>${esc(L.emoji)} ${esc(L.title)}</h1>${isT?'':`<div class="lpb">${L.pages.map((_,k)=>`<i class="${k<=i?'on':''}"></i>`).join('')}</div>`}</div></header>
+    <main class="wrap"><div class="panel abar"><div class="actions" style="margin:0">${isT?'':`<button class="btn sm primary" id="ed">✏️ ${editing?'Editing this page':'Edit this page'}</button>`}<button class="btn sm" id="full">Full editor (questions, all pages)</button><button class="btn sm" id="stt">${L.status==='published'?'Unpublish':'Publish'}</button><span class="hint" style="margin-left:auto">${esc(L.topic||'')} · lesson ${at+1} of ${sib.length}</span></div></div>
+    ${isT?'<div class="panel"><p class="hint">This is a test with questions only (no reading pages).</p></div>':editing?`<div class="panel edbox"><label class="f">Page title<input id="et" value="${esc(p.title||'')}"></label><label class="f">Text <span class="hint">**bold** ==highlight== ## heading - bullet 1. step &gt; tip</span><textarea id="eb" style="min-height:320px">${esc(p.body)}</textarea></label><div class="actions"><button class="btn good" id="es">Save this page</button><button class="btn" id="ec">Cancel</button><button class="btn" id="ea">＋ Add a page after this</button>${L.pages.length>1?'<button class="btn danger" id="er">Remove this page</button>':''}</div><div id="em"></div><h3 style="margin-top:14px">Live preview</h3><article class="reader card" style="--cc:${col}"><h2 id="pt">${esc(p.title||'')}</h2><div class="rich" id="pb">${rich(p.body)}</div></article></div>`
+    :`<article class="reader card" id="rd" style="--cc:${col}">${p.title?`<h2>${esc(p.title)}</h2>`:''}<div class="rich">${rich(p.body)}</div></article>`}
+    ${isT?'':`<div class="actions" style="justify-content:space-between"><button class="btn" id="pv" ${i?'':'disabled'}>◀ Page back</button><span class="hint">Page ${i+1} of ${L.pages.length}</span><button class="btn primary" id="nx" ${i<L.pages.length-1?'':'disabled'}>Page next ▶</button></div>`}
+    <div class="actions" style="justify-content:space-between"><button class="btn" id="pl" ${prevL?'':'disabled'}>⏮ Previous lesson</button><button class="btn" id="nl" ${nextL?'':'disabled'}>Next lesson ⏭</button></div>
+    <details class="panel" ${isT?'open':''}><summary><b>Questions (${L.questions.length})</b> <span class="hint">read only here; use the full editor to change them</span></summary><ol class="qlist">${L.questions.map(qh).join('')||'<li class="hint">None yet.</li>'}</ol></details></main>`;
+    $('#bk').onclick=()=>adminHome('lessons');$('#full').onclick=()=>lessonEditor(L);
+    $('#stt').onclick=async()=>{const x=await api('lessonStatus',{id:L.id,status:L.status==='published'?'draft':'published'});toast(x.ok?'Done':x.error);if(x.ok)adminRead(L.id,i)};
+    const ed=$('#ed');if(ed)ed.onclick=()=>{editing=true;paint();setTimeout(()=>{const b=$('#eb');if(b)b.focus()},50)};
+    if(!isT){$('#pv').onclick=()=>{i--;editing=false;paint();window.scrollTo(0,0)};$('#nx').onclick=()=>{i++;editing=false;paint();window.scrollTo(0,0)}}
+    $('#pl').onclick=()=>prevL&&adminRead(prevL.id);$('#nl').onclick=()=>nextL&&adminRead(nextL.id);
+    if(editing){const et=$('#et'),eb=$('#eb');const live=()=>{$('#pt').textContent=et.value;$('#pb').innerHTML=rich(eb.value)};et.oninput=live;eb.oninput=live;
+      $('#ec').onclick=()=>{editing=false;paint()};
+      const save=async(after)=>{L.pages[i]={...L.pages[i],title:et.value,body:eb.value};if(after)L.pages.splice(i+1,0,{title:'',body:''});const x=await api('lessonSave',{...L});if(!x.ok){$('#em').innerHTML=`<div class="msg err">${esc(x.error)}</div>`;return false}toast('Saved');return true};
+      $('#es').onclick=async()=>{if(await save(false)){editing=false;paint()}};
+      $('#ea').onclick=async()=>{if(await save(true)){i++;editing=true;paint();window.scrollTo(0,0)}};
+      const er=$('#er');if(er)er.onclick=async()=>{if(!confirm('Remove this page?'))return;L.pages.splice(i,1);const x=await api('lessonSave',{...L});if(!x.ok){toast(x.error);return}i=Math.max(0,i-1);editing=false;paint()}}}
+  paint()}
 /* ---------- lesson editor ---------- */
 function lessonEditor(L0,fresh){
   const ED=JSON.parse(JSON.stringify(L0));window.scrollTo(0,0);let showPrev=false;
