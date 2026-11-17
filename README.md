@@ -113,3 +113,11 @@ Learners tab (approve, see passwords with the vault key, new password, reset pro
 - Topics are coloured blocks in a grid; tapping one opens its own page with the mini-lessons as blocks. Every back button returns to the right page.
 - Pages are wider on big screens and use multi-column block grids.
 - Brighter theme colours (text contrast kept readable).
+
+## v1.7.0 — Mathematics for JHS 1, 2 and 3
+- All three Learner's Books are in: 15 chapters each (Number, Algebra, Geometry and Measurement, Handling Data), 305 lessons.
+- Each chapter is a topic: "Get ready" (strand, content standard, what you will learn, key words), one mini-lesson per section with every worked example, activity, key idea and BECE tip in book order, a "Chapter summary", and a chapter test made from the chapter review. Each topic list ends with a glossary quiz topic.
+- Exercises are on the last card of each lesson and become Quick check questions with the book's answers (typed answers are marked automatically, written answers are self-marked with the model answer).
+- Figures load on demand from `public/figs/m7|m8|m9.json`. Maths notation: stacked fractions, powers, roots, column vectors, vector arrows.
+- After uploading: Settings → "➕ Add the built-in lessons" once (adds 305 lessons; existing lessons are untouched).
+- Source books and the converter are in `tools/maths` (not needed to run the app).

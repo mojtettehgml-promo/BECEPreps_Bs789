@@ -1,4 +1,4 @@
-const APP_VERSION='v1.6.2',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.7.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -21,9 +21,11 @@ function loadScript(list,test){return new Promise((res,rej)=>{if(test&&test())re
 function rtInline(s){let t=esc(s);
   t=t.replace(/\[\[pic:([^\]]*)\]\]/g,(m,d)=>S.role==='admin'?`<span class="picslot">🖼 Picture goes here: ${d.trim()}</span>`:'');
   t=t.replace(/\[\[img:([a-z0-9]+)(?:\|([^\]]*))?\]\]/gi,(m,id,c)=>`<span class="figw"><img class="pic" data-pic="${id}" alt="${(c||'Picture').replace(/"/g,'')}">${c?`<span class="cap">${c}</span>`:''}</span>`);
+  t=t.replace(/\[\[fig:([A-Za-z0-9_-]+)(?:\|([^\]]*))?\]\]/g,(m,id,c)=>`<span class="figw"><img class="pic" data-fig="${id}" alt="${(c||'Diagram').replace(/"/g,'')}">${c?`<span class="cap">${c}</span>`:''}</span>`);
   t=t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/==(.+?)==/g,'<mark class="hl">$1</mark>');
   t=t.replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/_\{([^{}]*)\}/g,'<sub>$1</sub>');
   t=t.replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,'<span class="frac"><span>$1</span><span>$2</span></span>');
+  t=t.replace(/col\{([^{};]*);([^{};]*)\}/g,'<span class="cv"><span>$1</span><span>$2</span></span>').replace(/vec\{([^{}]*)\}/g,'<span class="vec">$1</span>').replace(/ovl\{([^{}]*)\}/g,'<span class="ovl">$1</span>');
   return t.replace(/sqrt\{([^{}]*)\}/g,'√<span class="rad">$1</span>')}
 function rich(s){const out=[];let list=null,tbl=null;const flushT=()=>{if(tbl&&tbl.length){out.push('<div class="tw"><table><thead><tr>'+tbl[0].map(c=>`<th>${rtInline(c)}</th>`).join('')+'</tr></thead><tbody>'+tbl.slice(1).map(r=>'<tr>'+r.map(c=>`<td>${rtInline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>')}tbl=null};const close=()=>{if(list){out.push('</'+list+'>');list=null}if(tbl&&!/^\|/.test(cur))flushT()};let cur='';
   String(s||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trimEnd();let m;cur=l;
@@ -35,11 +37,15 @@ function rich(s){const out=[];let list=null,tbl=null;const flushT=()=>{if(tbl&&t
     if(/^\|.*\|\s*$/.test(l)){close();tbl=tbl||[];if(!/^\|[\s:|-]+\|$/.test(l))tbl.push(l.replace(/^\||\|\s*$/g,'').split('|').map(x=>x.trim()));return}
     close();out.push(`<p>${rtInline(l)}</p>`)});
   cur='';close();flushT();return out.join('')}
-const plain=s=>String(s||'').replace(/\[\[(?:img|pic):[^\]]*\]\]/gi,' ').replace(/^\|.*\|$/gm,' ').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
+const plain=s=>String(s||'').replace(/\[\[(?:img|pic|fig):[^\]]*\]\]/gi,' ').replace(/col\{([^{};]*);([^{};]*)\}/g,' column vector $1 over $2 ').replace(/vec\{([^{}]*)\}/g,' vector $1 ').replace(/ovl\{([^{}]*)\}/g,' $1 bar ').replace(/^\|.*\|$/gm,' ').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
 /* ---- pictures are stored separately and loaded when they appear ---- */
 const PIC=new Map();
 async function loadPic(img){const id=img.dataset.pic;if(!id||img.dataset.done)return;img.dataset.done='1';if(!PIC.has(id))PIC.set(id,api('imgGet',{id}).then(r=>r.ok?r.d:''));const d=await PIC.get(id);if(d)img.src=d;else img.closest('.figw')&&img.closest('.figw').classList.add('hide')}
-new MutationObserver(()=>app.querySelectorAll('img[data-pic]:not([data-done])').forEach(loadPic)).observe(app,{childList:true,subtree:true});
+const FIGS=new Map();
+async function loadFig(img){const id=img.dataset.fig;if(!id||img.dataset.done)return;img.dataset.done='1';const book=id.split('-')[0];
+  if(!FIGS.has(book))FIGS.set(book,fetch('/figs/'+book+'.json').then(r=>r.ok?r.json():{}).catch(()=>({})));
+  const d=(await FIGS.get(book))[id];if(d)img.src=d;else img.closest('.figw')&&img.closest('.figw').classList.add('hide')}
+new MutationObserver(()=>{app.querySelectorAll('img[data-pic]:not([data-done])').forEach(loadPic);app.querySelectorAll('img[data-fig]:not([data-done])').forEach(loadFig)}).observe(app,{childList:true,subtree:true});
 /* ---- progress, stars, streak, levels ---- */
 const pad2=n=>String(n).padStart(2,'0'),dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())};
 const yKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d)};

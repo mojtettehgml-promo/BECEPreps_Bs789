@@ -9,6 +9,7 @@ function near(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>1||a.leng
 function hasKey(txt,key){const t=normA(txt),k=normA(key);if(!k)return false;if(k.includes(' ')||/\d/.test(k))return(' '+t+' ').includes(' '+k+' ')||t.replace(/ /g,'').includes(k.replace(/ /g,''));const ks=stem(k);return t.split(' ').some(w=>w===k||stem(w)===ks||near(stem(w),ks))}
 const ideaHit=(txt,idea)=>(idea.k||[]).some(k=>hasKey(txt,k));
 const stP=x=>x.parts||[];const stTot=x=>stP(x).reduce((a,p)=>a+p.m,0);
+const qrich=t=>/\n\|/.test(String(t))?rich(t):rtInline(t);
 /* ---- the question runner: one question per screen ---- */
 function runQuiz(o){
   const items=o.items;let idx=0,left=o.timer||0,tid=null;const res=[];
@@ -20,7 +21,7 @@ function runQuiz(o){
   function show(){
     window.scrollTo(0,0);const it=items[idx],q=it.q,lastQ=idx===items.length-1,nxl=lastQ?'See my results ▶':'Next ▶';
     if(it.k==='mcq'){
-      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">QUESTION ${idx+1}</span><div class="qtext">${rtInline(q.q)}</div><div id="ops">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'ABCDE'[k]}</span><span>${rtInline(t)}</span></button>`).join('')}</div><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="nx" disabled>${nxl}</button></div></section></main>`;wireExit();
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">QUESTION ${idx+1}</span><div class="qtext">${qrich(q.q)}</div><div id="ops">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'ABCDE'[k]}</span><span>${rtInline(t)}</span></button>`).join('')}</div><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="nx" disabled>${nxl}</button></div></section></main>`;wireExit();
       let pick=-1,locked=false;const ops=[...app.querySelectorAll('.opt')];
       ops.forEach(b=>b.onclick=()=>{if(locked)return;pick=+b.dataset.k;
         if(o.instant){locked=true;const ok=pick===q.c;ops.forEach((z,k)=>{z.disabled=true;if(k===q.c)z.classList.add('right');else if(k===pick)z.classList.add('wrong')});
@@ -37,8 +38,8 @@ function runQuiz(o){
       $('#ck').onclick=go;a.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();checked&&$('#nx')?$('#nx').click():go()}}}
     else{ /* structured, self-marked */
       const P_=stP(q),tot=stTot(q),sc=P_.map(()=>0),shown=P_.map(()=>false);
-      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${rtInline(q.q)}</div></section>
-      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${rtInline(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="${p.ideas&&p.ideas.length?'Type your answer here in your own words.':'Write your answer here, or on paper, then show the model answer.'}"></textarea><div class="actions"><button class="btn primary" data-show="${k}">${p.ideas&&p.ideas.length?'Check my answer ✓':'Show the model answer'}</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${qrich(q.q)}</div></section>
+      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${qrich(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="${p.ideas&&p.ideas.length?'Type your answer here in your own words.':'Write your answer here, or on paper, then show the model answer.'}"></textarea><div class="actions"><button class="btn primary" data-show="${k}">${p.ideas&&p.ideas.length?'Check my answer ✓':'Show the model answer'}</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
       <div class="actions"><button class="btn primary big" id="fin">${nxl}</button></div></main>`;wireExit();
       app.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=+b.dataset.show,p=P_[k],card=b.closest('.qcard'),ta=card.querySelector('textarea'),slot=card.querySelector('.slot');
         const ans=p.a?`<div class="rich">${rich(p.a)}</div>`:'';
@@ -66,7 +67,7 @@ const shufMcq=q=>{if(q.o.some(t=>/\b(all|none) of the above\b|\bboth\b/i.test(t)
 async function lessonTest(L){
   const isT=L.kind==='test';let pool=L.questions.map(q=>({...q,lid:L.id}));
   if(isT||pool.filter(q=>q.t==='mcq').length<5){const r=await api('subjectQs',{subject:L.subject,level:lvlOf(L),bank:true});if(r.ok){const seen=new Set(pool.map(q=>normA(q.q)));r.questions.filter(q=>(q.topic||'')===(L.topic||'')).forEach(q=>{const k=normA(q.q);if(!seen.has(k)){seen.add(k);pool.push(q)}})}}
-  const pick=t=>{const f=pool.filter(q=>q.t===t);return [...shuffle(f.filter(q=>q.lid===L.id)),...shuffle(f.filter(q=>q.lid!==L.id))]};const nMc=isT?8:5,nSt=isT?3:1,mc=pick('mcq').slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=pick('st').slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=pick('fib').slice(0,2).map(q=>({k:'fib',q,lid:q.lid}));
+  const pick=t=>{const f=pool.filter(q=>q.t===t);return [...shuffle(f.filter(q=>q.lid===L.id)),...shuffle(f.filter(q=>q.lid!==L.id))]};const nMc=isT?8:5,mc0=pick('mcq').length,nSt=isT?4:(mc0<3?3:1),nFib=isT?10:(mc0<5?8:2),mc=pick('mcq').slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=pick('st').slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=pick('fib').slice(0,nFib).map(q=>({k:'fib',q,lid:q.lid}));
   const items=[...mc,...fb,...st];
   if(!items.length){toast('No questions for this topic yet.');return L.pages.length?openLesson(L.id,L.pages.length-1):backTo(L)}
   const before=starsTotal();document.querySelectorAll('.toast,.confetti').forEach(e=>e.remove());

@@ -194,8 +194,14 @@ body.bgfun #app,body.bgfun header.hero,body.bgfun main{position:relative;z-index
 .hero{filter:saturate(1.15)}.subj,.jb,.tblock,.lblock{filter:saturate(1.12)}
 .fbk.ok,.fbk.no{filter:none}
 .tblock small,.lblock small{text-shadow:0 1px 2px rgba(0,0,0,.28)}.tblock .tn,.lblock .lno{background:rgba(255,255,255,.28)}
+
+/* v1.7.0: maths notation */
+.rich .vec,.qtext .vec{position:relative;display:inline-block;padding-top:.28em;line-height:1}.vec::before{content:"→";position:absolute;left:0;right:0;top:-.18em;text-align:center;font-size:.8em;line-height:1}
+.ovl{border-top:1.5px solid currentColor;padding-top:1px}
+.cv{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .35em;padding:0 .35em;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:6px;font-size:.92em}
+.figw{display:block;margin:10px auto;text-align:center}.figw img.pic{max-width:100%;max-height:none;height:auto;border-radius:10px;background:#fff}
 </style></head><body><div id="app"><p style="padding:24px">Loading…</p></div><script>
-const APP_VERSION='v1.6.2',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.7.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;
@@ -218,9 +224,11 @@ function loadScript(list,test){return new Promise((res,rej)=>{if(test&&test())re
 function rtInline(s){let t=esc(s);
   t=t.replace(/\[\[pic:([^\]]*)\]\]/g,(m,d)=>S.role==='admin'?`<span class="picslot">🖼 Picture goes here: ${d.trim()}</span>`:'');
   t=t.replace(/\[\[img:([a-z0-9]+)(?:\|([^\]]*))?\]\]/gi,(m,id,c)=>`<span class="figw"><img class="pic" data-pic="${id}" alt="${(c||'Picture').replace(/"/g,'')}">${c?`<span class="cap">${c}</span>`:''}</span>`);
+  t=t.replace(/\[\[fig:([A-Za-z0-9_-]+)(?:\|([^\]]*))?\]\]/g,(m,id,c)=>`<span class="figw"><img class="pic" data-fig="${id}" alt="${(c||'Diagram').replace(/"/g,'')}">${c?`<span class="cap">${c}</span>`:''}</span>`);
   t=t.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/==(.+?)==/g,'<mark class="hl">$1</mark>');
   t=t.replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/_\{([^{}]*)\}/g,'<sub>$1</sub>');
   t=t.replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,'<span class="frac"><span>$1</span><span>$2</span></span>');
+  t=t.replace(/col\{([^{};]*);([^{};]*)\}/g,'<span class="cv"><span>$1</span><span>$2</span></span>').replace(/vec\{([^{}]*)\}/g,'<span class="vec">$1</span>').replace(/ovl\{([^{}]*)\}/g,'<span class="ovl">$1</span>');
   return t.replace(/sqrt\{([^{}]*)\}/g,'√<span class="rad">$1</span>')}
 function rich(s){const out=[];let list=null,tbl=null;const flushT=()=>{if(tbl&&tbl.length){out.push('<div class="tw"><table><thead><tr>'+tbl[0].map(c=>`<th>${rtInline(c)}</th>`).join('')+'</tr></thead><tbody>'+tbl.slice(1).map(r=>'<tr>'+r.map(c=>`<td>${rtInline(c)}</td>`).join('')+'</tr>').join('')+'</tbody></table></div>')}tbl=null};const close=()=>{if(list){out.push('</'+list+'>');list=null}if(tbl&&!/^\|/.test(cur))flushT()};let cur='';
   String(s||'').replace(/\r/g,'').split('\n').forEach(raw=>{const l=raw.trimEnd();let m;cur=l;
@@ -232,11 +240,15 @@ function rich(s){const out=[];let list=null,tbl=null;const flushT=()=>{if(tbl&&t
     if(/^\|.*\|\s*$/.test(l)){close();tbl=tbl||[];if(!/^\|[\s:|-]+\|$/.test(l))tbl.push(l.replace(/^\||\|\s*$/g,'').split('|').map(x=>x.trim()));return}
     close();out.push(`<p>${rtInline(l)}</p>`)});
   cur='';close();flushT();return out.join('')}
-const plain=s=>String(s||'').replace(/\[\[(?:img|pic):[^\]]*\]\]/gi,' ').replace(/^\|.*\|$/gm,' ').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
+const plain=s=>String(s||'').replace(/\[\[(?:img|pic|fig):[^\]]*\]\]/gi,' ').replace(/col\{([^{};]*);([^{};]*)\}/g,' column vector $1 over $2 ').replace(/vec\{([^{}]*)\}/g,' vector $1 ').replace(/ovl\{([^{}]*)\}/g,' $1 bar ').replace(/^\|.*\|$/gm,' ').replace(/\*\*|==/g,'').replace(/^#+\s*/gm,'').replace(/^>\s*/gm,'').replace(/\^\{([^{}]*)\}/g,' to the power $1 ').replace(/_\{([^{}]*)\}/g,' $1 ').replace(/\[\[([^\[\]\/]+)\/([^\[\]\/]+)\]\]/g,' $1 over $2 ').replace(/sqrt\{([^{}]*)\}/g,' square root of $1 ');
 /* ---- pictures are stored separately and loaded when they appear ---- */
 const PIC=new Map();
 async function loadPic(img){const id=img.dataset.pic;if(!id||img.dataset.done)return;img.dataset.done='1';if(!PIC.has(id))PIC.set(id,api('imgGet',{id}).then(r=>r.ok?r.d:''));const d=await PIC.get(id);if(d)img.src=d;else img.closest('.figw')&&img.closest('.figw').classList.add('hide')}
-new MutationObserver(()=>app.querySelectorAll('img[data-pic]:not([data-done])').forEach(loadPic)).observe(app,{childList:true,subtree:true});
+const FIGS=new Map();
+async function loadFig(img){const id=img.dataset.fig;if(!id||img.dataset.done)return;img.dataset.done='1';const book=id.split('-')[0];
+  if(!FIGS.has(book))FIGS.set(book,fetch('/figs/'+book+'.json').then(r=>r.ok?r.json():{}).catch(()=>({})));
+  const d=(await FIGS.get(book))[id];if(d)img.src=d;else img.closest('.figw')&&img.closest('.figw').classList.add('hide')}
+new MutationObserver(()=>{app.querySelectorAll('img[data-pic]:not([data-done])').forEach(loadPic);app.querySelectorAll('img[data-fig]:not([data-done])').forEach(loadFig)}).observe(app,{childList:true,subtree:true});
 /* ---- progress, stars, streak, levels ---- */
 const pad2=n=>String(n).padStart(2,'0'),dayKey=d=>{d=d||new Date();return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())};
 const yKey=()=>{const d=new Date();d.setDate(d.getDate()-1);return dayKey(d)};
@@ -387,6 +399,7 @@ function near(a,b){if(a===b)return true;if(Math.abs(a.length-b.length)>1||a.leng
 function hasKey(txt,key){const t=normA(txt),k=normA(key);if(!k)return false;if(k.includes(' ')||/\d/.test(k))return(' '+t+' ').includes(' '+k+' ')||t.replace(/ /g,'').includes(k.replace(/ /g,''));const ks=stem(k);return t.split(' ').some(w=>w===k||stem(w)===ks||near(stem(w),ks))}
 const ideaHit=(txt,idea)=>(idea.k||[]).some(k=>hasKey(txt,k));
 const stP=x=>x.parts||[];const stTot=x=>stP(x).reduce((a,p)=>a+p.m,0);
+const qrich=t=>/\n\|/.test(String(t))?rich(t):rtInline(t);
 /* ---- the question runner: one question per screen ---- */
 function runQuiz(o){
   const items=o.items;let idx=0,left=o.timer||0,tid=null;const res=[];
@@ -398,7 +411,7 @@ function runQuiz(o){
   function show(){
     window.scrollTo(0,0);const it=items[idx],q=it.q,lastQ=idx===items.length-1,nxl=lastQ?'See my results ▶':'Next ▶';
     if(it.k==='mcq'){
-      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">QUESTION ${idx+1}</span><div class="qtext">${rtInline(q.q)}</div><div id="ops">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'ABCDE'[k]}</span><span>${rtInline(t)}</span></button>`).join('')}</div><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="nx" disabled>${nxl}</button></div></section></main>`;wireExit();
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">QUESTION ${idx+1}</span><div class="qtext">${qrich(q.q)}</div><div id="ops">${q.o.map((t,k)=>`<button class="opt" data-k="${k}"><span class="l">${'ABCDE'[k]}</span><span>${rtInline(t)}</span></button>`).join('')}</div><div id="fb" aria-live="polite"></div><div class="actions"><button class="btn primary" id="nx" disabled>${nxl}</button></div></section></main>`;wireExit();
       let pick=-1,locked=false;const ops=[...app.querySelectorAll('.opt')];
       ops.forEach(b=>b.onclick=()=>{if(locked)return;pick=+b.dataset.k;
         if(o.instant){locked=true;const ok=pick===q.c;ops.forEach((z,k)=>{z.disabled=true;if(k===q.c)z.classList.add('right');else if(k===pick)z.classList.add('wrong')});
@@ -415,8 +428,8 @@ function runQuiz(o){
       $('#ck').onclick=go;a.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();checked&&$('#nx')?$('#nx').click():go()}}}
     else{ /* structured, self-marked */
       const P_=stP(q),tot=stTot(q),sc=P_.map(()=>0),shown=P_.map(()=>false);
-      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${rtInline(q.q)}</div></section>
-      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${rtInline(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="${p.ideas&&p.ideas.length?'Type your answer here in your own words.':'Write your answer here, or on paper, then show the model answer.'}"></textarea><div class="actions"><button class="btn primary" data-show="${k}">${p.ideas&&p.ideas.length?'Check my answer ✓':'Show the model answer'}</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
+      app.innerHTML=bar()+`<main class="wrap"><section class="qcard"><span class="qn">STRUCTURED QUESTION ${idx+1} · ${tot} marks</span><div class="qtext">${qrich(q.q)}</div></section>
+      ${P_.map((p,k)=>`<section class="qcard" data-k="${k}"><span class="qn">PART ${'abcdefghij'[k]||k+1}</span> <span class="tag">${p.m} mark${p.m>1?'s':''}</span><div class="qtext">${qrich(p.q)}</div><label class="hide" for="st${k}">Your answer</label><textarea id="st${k}" placeholder="${p.ideas&&p.ideas.length?'Type your answer here in your own words.':'Write your answer here, or on paper, then show the model answer.'}"></textarea><div class="actions"><button class="btn primary" data-show="${k}">${p.ideas&&p.ideas.length?'Check my answer ✓':'Show the model answer'}</button></div><div class="slot" aria-live="polite"></div></section>`).join('')}
       <div class="actions"><button class="btn primary big" id="fin">${nxl}</button></div></main>`;wireExit();
       app.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{const k=+b.dataset.show,p=P_[k],card=b.closest('.qcard'),ta=card.querySelector('textarea'),slot=card.querySelector('.slot');
         const ans=p.a?`<div class="rich">${rich(p.a)}</div>`:'';
@@ -444,7 +457,7 @@ const shufMcq=q=>{if(q.o.some(t=>/\b(all|none) of the above\b|\bboth\b/i.test(t)
 async function lessonTest(L){
   const isT=L.kind==='test';let pool=L.questions.map(q=>({...q,lid:L.id}));
   if(isT||pool.filter(q=>q.t==='mcq').length<5){const r=await api('subjectQs',{subject:L.subject,level:lvlOf(L),bank:true});if(r.ok){const seen=new Set(pool.map(q=>normA(q.q)));r.questions.filter(q=>(q.topic||'')===(L.topic||'')).forEach(q=>{const k=normA(q.q);if(!seen.has(k)){seen.add(k);pool.push(q)}})}}
-  const pick=t=>{const f=pool.filter(q=>q.t===t);return [...shuffle(f.filter(q=>q.lid===L.id)),...shuffle(f.filter(q=>q.lid!==L.id))]};const nMc=isT?8:5,nSt=isT?3:1,mc=pick('mcq').slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=pick('st').slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=pick('fib').slice(0,2).map(q=>({k:'fib',q,lid:q.lid}));
+  const pick=t=>{const f=pool.filter(q=>q.t===t);return [...shuffle(f.filter(q=>q.lid===L.id)),...shuffle(f.filter(q=>q.lid!==L.id))]};const nMc=isT?8:5,mc0=pick('mcq').length,nSt=isT?4:(mc0<3?3:1),nFib=isT?10:(mc0<5?8:2),mc=pick('mcq').slice(0,nMc).map(q=>({k:'mcq',q:shufMcq(q),lid:q.lid})),st=pick('st').slice(0,nSt).map(q=>({k:'st',q,lid:q.lid})),fb=pick('fib').slice(0,nFib).map(q=>({k:'fib',q,lid:q.lid}));
   const items=[...mc,...fb,...st];
   if(!items.length){toast('No questions for this topic yet.');return L.pages.length?openLesson(L.id,L.pages.length-1):backTo(L)}
   const before=starsTotal();document.querySelectorAll('.toast,.confetti').forEach(e=>e.remove());
