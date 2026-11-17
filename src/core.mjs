@@ -256,6 +256,12 @@ export function createHandler(getS, env = {}) {
 
     // ---------- lessons (everyone signed in reads; only the administrator writes)
     const lidx = async () => (await get("lidx")) || [];
+    // Incremental index: only the lessons that changed are touched (a full rescan reads every lesson and gets too heavy with ~1,000 lessons).
+    const idxApply = async (put = [], del = []) => {
+      const cur = await lidx(); if (!cur.length) return reindex();
+      const m = new Map(cur.map((x) => [x.id, x])); for (const id of del) m.delete(id); for (const l of put) m.set(l.id, lmeta(l));
+      const out = [...m.values()].sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)); await set("lidx", out); return out;
+    };
     const reindex = async () => { const out = []; for (const { v: l } of await vals("lesson:")) out.push(lmeta(l)); out.sort((a, b) => a.order - b.order || a.title.localeCompare(b.title)); await set("lidx", out); return out; };
     if (action === "lessonList") {
       const all = await lidx();
@@ -382,18 +388,18 @@ export function createHandler(getS, env = {}) {
       const id = clip(body.id, 40), old = id ? await get("lesson:" + id) : null;
       if (id && !old) return fail("Lesson not found.", 404);
       const r = cleanLesson(body, old); if (r.error) return fail(r.error);
-      await set("lesson:" + r.out.id, r.out); await reindex(); return json({ ok: true, id: r.out.id });
+      await set("lesson:" + r.out.id, r.out); await idxApply([r.out]); return json({ ok: true, id: r.out.id });
     }
     if (action === "lessonDelete") {
       const id = clip(body.id, 40); if (!(await get("lesson:" + id))) return fail("Lesson not found.", 404);
       await store.delete("lesson:" + id);
       if (/^b[789]-/.test(id)) { const g = (await get("seedgone")) || []; if (!g.includes(id)) { g.push(id); await set("seedgone", g.slice(-3000)); } }
-      await reindex(); return json({ ok: true });
+      await idxApply([], [id]); return json({ ok: true });
     }
     if (action === "lessonStatus") {
       const id = clip(body.id, 40), l = await get("lesson:" + id); if (!l) return fail("Lesson not found.", 404);
       const st = body.status === "published" ? "published" : "draft";
-      l.status = st; l.updatedAt = Date.now(); await set("lesson:" + id, l); await reindex(); return json({ ok: true });
+      l.status = st; l.updatedAt = Date.now(); await set("lesson:" + id, l); await idxApply([l]); return json({ ok: true });
     }
 
     // ---- admin two-step login
@@ -480,16 +486,19 @@ export function createHandler(getS, env = {}) {
       const from = Math.max(0, parseInt(body.from, 10) || 0), STEP = 10, chunk = part.lessons.slice(from, from + STEP);
       const have = new Set((await store.list({ prefix: "lesson:" })).blobs.map((x) => x.key.slice(7)));
       const gone = new Set(body.includeDeleted ? [] : ((await get("seedgone")) || []));
-      let n = 0, already = 0, del = 0, upd = 0; const added = [], need = new Set();
+      let n = 0, already = 0, del = 0, upd = 0; const added = [], need = new Set(), wrote = [];
       for (const x of chunk) {
         const exists = have.has(x.id);
         if (exists && !body.replace) { already++; continue; }
         if (gone.has(x.id)) { del++; continue; }
-        const r = cleanLesson({ ...x }, null); if (r.out) { r.out.id = x.id; await set("lesson:" + x.id, r.out); if (exists) upd++; else { n++; added.push(x.id); } for (const pg of x.pages || []) for (const m of String(pg.body || "").matchAll(/\[\[img:([A-Za-z0-9]+)/g)) need.add(m[1]); }
+        const r = cleanLesson({ ...x }, null); if (r.out) { r.out.id = x.id; await set("lesson:" + x.id, r.out); wrote.push(r.out); if (exists) upd++; else { n++; added.push(x.id); } for (const pg of x.pages || []) for (const m of String(pg.body || "").matchAll(/\[\[img:([A-Za-z0-9]+)/g)) need.add(m[1]); }
       }
       if (added.length && body.includeDeleted) { const g = ((await get("seedgone")) || []).filter((i) => !added.includes(i)); await set("seedgone", g); }
       if (need.size) { const haveImg = new Set((await store.list({ prefix: "img:" })).blobs.map((x) => x.key.slice(4))); for (const im of part.images || []) if (need.has(im.id) && !haveImg.has(im.id)) await set("img:" + im.id, { d: im.d }); }
-      if (n || upd) await reindex();
+      // repair: lessons that were saved by an interrupted run but never reached the index are indexed here (a few at a time)
+      const known = new Set((await lidx()).map((x) => x.id)), orphans = [];
+      for (const id of have) { if (orphans.length >= 8) break; if (!known.has(id) && !wrote.some((w) => w.id === id)) { const l = await get("lesson:" + id); if (l) orphans.push(l); } }
+      if (wrote.length || orphans.length) await idxApply([...wrote, ...orphans]);
       return json({ ok: true, added: n, updated: upd, already, deleted: del, next: from + STEP < part.lessons.length ? from + STEP : null });
     }
     if (action === "questionsAdd") {
@@ -510,8 +519,8 @@ export function createHandler(getS, env = {}) {
         if (!last || last.questions.length >= 80) { const n = last ? parseInt(last.id.slice(pre.length), 10) + 1 : 1; if (n > 99) break; last = mk(n); }
         last.questions.push(q); touched.set(last.id, last);
       }
-      for (const b of touched.values()) { const r = cleanLesson({ ...b }, null); if (r.out) { r.out.id = b.id; await set("lesson:" + b.id, r.out); } }
-      if (touched.size) await reindex();
+      const outs = []; for (const b of touched.values()) { const r = cleanLesson({ ...b }, null); if (r.out) { r.out.id = b.id; await set("lesson:" + b.id, r.out); outs.push(r.out); } }
+      if (outs.length) await idxApply(outs);
       return json({ ok: true, added: fresh.length, duplicates: dup, rejected });
     }
     if (action === "userSetYear" && me.role === "admin") {
@@ -520,9 +529,9 @@ export function createHandler(getS, env = {}) {
     }
     if (action === "importLessons") {
       for (const im of (Array.isArray(body.images) ? body.images : []).slice(0, 400)) { const id = clip(im && im.id, 40).replace(/[^a-z0-9]/gi, ""); if (id && /^data:image\/(jpeg|png|webp);base64,/.test(String(im.d || "")) && String(im.d).length <= 900000) await set("img:" + id, { d: im.d }); }
-      const arr = Array.isArray(body.lessons) ? body.lessons : []; let n = 0;
-      for (const x of arr.slice(0, 300)) { const r = cleanLesson({ ...x, id: x.id }, null); if (r.out) { if (x.id) r.out.id = clip(x.id, 40) || r.out.id; await set("lesson:" + r.out.id, r.out); n++; } }
-      await reindex(); return json({ ok: true, imported: n });
+      const arr = Array.isArray(body.lessons) ? body.lessons : []; let n = 0; const outs = [];
+      for (const x of arr.slice(0, 300)) { const r = cleanLesson({ ...x, id: x.id }, null); if (r.out) { if (x.id) r.out.id = clip(x.id, 40) || r.out.id; await set("lesson:" + r.out.id, r.out); outs.push(r.out); n++; } }
+      if (outs.length) await idxApply(outs); return json({ ok: true, imported: n });
     }
     if (action === "setSettings") {
       const n = (v, lo, hi, d) => Math.min(hi, Math.max(lo, parseInt(v, 10) || d));
