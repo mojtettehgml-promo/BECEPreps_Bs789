@@ -195,3 +195,20 @@ body.bgfun #app,body.bgfun header.hero,body.bgfun main{position:relative;z-index
 .ovl{border-top:1.5px solid currentColor;padding-top:1px}
 .cv{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .35em;padding:0 .35em;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:6px;font-size:.92em}
 .figw{display:block;margin:10px auto;text-align:center}.figw img.pic{max-width:100%;max-height:none;height:auto;border-radius:10px;background:#fff}
+
+/* v1.8.1 admin lesson navigator */
+.fchips{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.chip{border:2px solid var(--line);background:var(--card);color:inherit;border-radius:999px;padding:6px 13px;font:inherit;font-weight:700;cursor:pointer}
+.chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.addbox>summary{cursor:pointer;list-style:none}.addbox>summary::-webkit-details-marker{display:none}
+details.gs,details.gl,details.gt{background:var(--card);border:2px solid var(--line);border-radius:14px;margin:10px 0;overflow:hidden}
+details.gl,details.gt{margin:8px 10px}details.gs{box-shadow:0 2px 0 rgba(0,0,0,.05)}
+details.gs>summary,details.gl>summary,details.gt>summary{cursor:pointer;padding:12px 14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+details.gs>summary{font-size:1.1rem;background:linear-gradient(90deg,rgba(124,58,237,.12),rgba(2,114,184,.10))}
+details.gl>summary{background:rgba(2,114,184,.08)}
+details.gt>summary{background:rgba(224,82,10,.07)}
+.cnt{margin-left:auto;font-size:.82rem;opacity:.75}
+.tact{display:flex;gap:6px;padding:8px 12px 0;flex-wrap:wrap}
+.lrow{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:9px 12px;border-top:1px solid var(--line)}
+.lrow.last{background:rgba(250,204,21,.22)}
+.lrow .lk{font-size:1.3rem}.lrow .lt{flex:1;min-width:200px}.lrow .ra{display:flex;gap:6px;flex-wrap:wrap}

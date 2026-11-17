@@ -1,5 +1,5 @@
 /* =============== administrator =============== */
-let ADM_TAB='lessons';
+let ADM_TAB='lessons',ADM_F={sub:'',lv:'',q:'',open:{},last:'',addOpen:false};
 const nm_=s=>esc(s.fullName||s.username)+(s.fullName?` <span class="meta">(${esc(s.username)})</span>`:'');
 async function adminHome(tab){document.body.classList.remove('bgfun');
   if(tab)ADM_TAB=tab;window.scrollTo(0,0);document.body.style.paddingBottom='0';
@@ -89,10 +89,40 @@ function autoFib(pages){
 async function adminLessons(ap){
   const r=await api('lessonList');if(!r.ok){ap.innerHTML=`<div class="msg err">${esc(r.error)}</div>`;return}
   S.lessons=r.lessons;
-  ap.innerHTML=`${qUploadHtml()}${bookPanelHtml()}<div class="panel"><h3>Add simple notes (Word or PDF)</h3><p class="hint">Upload a Word or PDF topic. It becomes a draft lesson split into reading pages (about 2 to 3). You then review it, add test questions and publish.</p>
+  ap.innerHTML=`<div id="afind0"></div><details class="panel addbox"${ADM_F.addOpen?' open':''}><summary><h3 style="display:inline">➕ Add or import lessons</h3> <span class="hint">Word/PDF notes, books, question files, or write by hand</span></summary>${qUploadHtml()}${bookPanelHtml()}<div class="panel"><h3>Add simple notes (Word or PDF)</h3><p class="hint">Upload a Word or PDF topic. It becomes a draft lesson split into reading pages (about 2 to 3). You then review it, add test questions and publish.</p>
   <div class="two"><label class="f">Subject<select id="us">${SUBJ.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}</select></label><label class="f">Word or PDF files<input type="file" id="uf" accept=".docx,.pdf,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" multiple></label></div>
-  <div class="actions"><button class="btn primary" id="ub">Create draft(s) from file(s)</button><button class="btn" id="nb">＋ Write a lesson by hand</button></div><div id="um"></div></div>
-  ${SUBJ.map(s=>{const ls=r.lessons.filter(l=>l.subject===s.id);return `<div class="panel"><h3>${s.mas} ${s.title} (${ls.length})</h3>${ls.map(l=>`<div class="ucard"><div><b>${esc(l.emoji)} ${esc(l.title)}</b><span class="badge ${l.status==='published'?'':'d'}">${l.status}</span><div class="meta">${lvlName(l.level)} · ${esc(l.topic||'no topic')} · ${l.kind==='test'?'topic test':l.np+' card'+(l.np>1?'s':'')} · ${l.nq} question${l.nq===1?'':'s'} · order ${l.order}</div></div><div class="actions" style="margin:0"><button class="btn sm primary" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')||'<p class="hint">No lessons yet.</p>'}</div>`}).join('')}`;
+  <div class="actions"><button class="btn primary" id="ub">Create draft(s) from file(s)</button><button class="btn" id="nb">＋ Write a lesson by hand</button></div><div id="um"></div></div></details>
+  <div class="panel" id="afind"><h3>Find a lesson</h3><div class="fchips" id="fs"></div><div class="fchips" id="fl"></div><label class="f" style="margin:8px 0 0"><input id="fq" type="search" placeholder="Search by lesson title or topic, e.g. loops, fractions, 4.4" value="${esc(ADM_F.q)}"></label><div class="hint" id="fcount" style="margin-top:6px"></div></div><div id="alist"></div>`;
+  const ADD=ap.querySelectorAll('.panel');
+  const drawList=()=>{const f=ADM_F,q=f.q.trim().toLowerCase(),L=r.lessons;
+    $('#fs').innerHTML='<b>Subject</b> '+[['','All']].concat(SUBJ.map(x=>[x.id,x.mas+' '+x.title])).map(([k,n])=>`<button class="chip ${f.sub===k?'on':''}" data-fs="${k}">${n}</button>`).join('');
+    $('#fl').innerHTML='<b>Class</b> '+[['','All']].concat(LVL).map(([k,n])=>`<button class="chip ${f.lv===k?'on':''}" data-fl="${k}">${n}</button>`).join('');
+    const vis=L.filter(l=>(!f.lv||l.level===f.lv)&&(!f.sub||l.subject===f.sub)&&(!q||((l.title||'')+' '+(l.topic||'')).toLowerCase().includes(q)));
+    $('#fcount').textContent=vis.length+' of '+L.length+' lessons shown'+(f.sub||f.lv||q?'':'. Pick a subject and class above, or search, to jump straight to a topic.');
+    const BK=[],KI={learn:'📖',test:'📝',bank:'🏦',exam:'🎓'},filt=!!(f.sub||f.lv||q);let h='';
+    for(const s of SUBJ){const sl=vis.filter(l=>l.subject===s.id);if(!sl.length)continue;
+      h+=`<details class="gs" data-k="s|${s.id}" ${filt||f.open['s|'+s.id]?'open':''}><summary>${s.mas} <b>${s.title}</b> <span class="cnt">${sl.length} lessons</span></summary>`;
+      for(const [lv,ln] of LVL){const ll=sl.filter(l=>l.level===lv);if(!ll.length)continue;const kk='l|'+s.id+'|'+lv;
+        h+=`<details class="gl" data-k="${kk}" ${(f.sub&&(f.lv||q))||q||f.open[kk]?'open':''}><summary><b>${ln}</b> <span class="cnt">${ll.length} lessons</span></summary>`;
+        const tops=[];ll.forEach(l=>{const t=l.topic||'(no topic)';let g=tops.find(x=>x.t===t);if(!g)tops.push(g={t,a:[],o:1e9});g.a.push(l);g.o=Math.min(g.o,+l.order||0)});
+        tops.sort((x,y)=>x.o-y.o);
+        for(const g of tops){const tk='t|'+s.id+'|'+lv+'|'+g.t,pub=g.a.filter(l=>l.status==='published').length;BK.push(g.a.map(l=>l.id));const bi=BK.length-1;
+          g.a.sort((x,y)=>(+x.order||0)-(+y.order||0));
+          h+=`<details class="gt" data-k="${tk}" ${q||(f.sub&&f.lv&&tops.length<=3)||f.open[tk]?'open':''}><summary><b>${esc(g.t)}</b> <span class="cnt">${g.a.length} lessons · ${pub} published</span></summary><div class="tact"><button class="btn sm" data-bk="${bi}:published">Publish all</button><button class="btn sm" data-bk="${bi}:draft">Unpublish all</button></div>`+
+            g.a.map(l=>`<div class="lrow ${f.last===l.id?'last':''}" id="r-${l.id}"><span class="lk" title="${l.kind}">${KI[l.kind]||'📖'}</span><div class="lt"><b>${esc(l.emoji||'')} ${esc(l.title)}</b><div class="meta">${l.kind==='test'?'topic test':l.kind==='bank'?'question bank':l.np+' card'+(l.np>1?'s':'')} · ${l.nq} question${l.nq===1?'':'s'} · #${l.order} <span class="badge ${l.status==='published'?'':'d'}">${l.status}</span></div></div><div class="ra"><button class="btn sm primary" data-e="${l.id}">Edit</button><button class="btn sm" data-p="${l.id}" data-s="${l.status==='published'?'draft':'published'}">${l.status==='published'?'Unpublish':'Publish'}</button><button class="btn sm danger" data-d="${l.id}">Delete</button></div></div>`).join('')+'</details>'}
+        h+='</details>'}
+      h+='</details>'}
+    $('#alist').innerHTML=h||'<div class="panel"><p class="hint">No lessons match. Clear the search or choose All.</p></div>';
+    const A=$('#alist');
+    A.querySelectorAll('details[data-k]').forEach(d=>d.addEventListener('toggle',()=>{ADM_F.open[d.dataset.k]=d.open}));
+    A.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{ADM_F.last=b.dataset.e;const x=await api('lessonGet',{id:b.dataset.e});if(x.ok)lessonEditor(x.lesson)});
+    A.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{ADM_F.last=b.dataset.p;const x=await api('lessonStatus',{id:b.dataset.p,status:b.dataset.s});toast(x.ok?'Done':x.error);adminLessons(ap)});
+    A.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this lesson? This cannot be undone.'))return;const x=await api('lessonDelete',{id:b.dataset.d});toast(x.ok?'Deleted':x.error);adminLessons(ap)});
+    A.querySelectorAll('[data-bk]').forEach(b=>b.onclick=async()=>{const [i,st]=b.dataset.bk.split(':'),ids=BK[+i];if(!confirm((st==='published'?'Publish':'Unpublish')+' all '+ids.length+' lessons in this topic?'))return;b.disabled=true;let bad=0;for(const id of ids){const x=await api('lessonStatus',{id,status:st});if(!x.ok)bad++}toast(bad?bad+' could not be changed':'Done');adminLessons(ap)});
+  };
+  ap.addEventListener('click',e=>{const b=e.target.closest('[data-fs],[data-fl]');if(!b)return;if(b.dataset.fs!==undefined)ADM_F.sub=b.dataset.fs;else ADM_F.lv=b.dataset.fl;drawList()});
+  $('#fq').oninput=e=>{ADM_F.q=e.target.value;drawList()};ap.querySelector('.addbox').addEventListener('toggle',e=>{ADM_F.addOpen=e.target.open});
+  drawList();if(ADM_F.last){const el=document.getElementById('r-'+ADM_F.last);if(el)el.scrollIntoView({block:'center'})}
   $('#nb').onclick=()=>lessonEditor({subject:$('#us').value,level:S.level,topic:'',kind:'learn',title:'',emoji:'📘',order:r.lessons.filter(l=>l.subject===$('#us').value).length+1,status:'draft',pages:[{title:'',body:''}],questions:[]});
   $('#ub').onclick=async()=>{const fs=[...$('#uf').files],um=$('#um');if(!fs.length)return um.innerHTML='<div class="msg err">Choose at least one file.</div>';const sid=$('#us').value;let made=[],bad=[];
     for(let i=0;i<fs.length;i++){const f=fs[i];um.innerHTML=`<div class="msg okm">Reading ${esc(f.name)} (${i+1} of ${fs.length})…</div>`;
@@ -103,9 +133,7 @@ async function adminLessons(ap){
     let ok=0;for(const L of made){const x=await api('lessonSave',L);if(x.ok)ok++;else bad.push(L.title+': '+x.error)}
     toast(ok+' draft'+(ok===1?'':'s')+' created');if(bad.length){adminLessons(ap);setTimeout(()=>{const u=$('#um');if(u)u.innerHTML=`<div class="msg err">${bad.map(esc).join('<br>')}</div>`},100)}else adminLessons(ap)};
   bookPanelWire(ap,()=>adminLessons(ap));qUploadWire(ap);
-  ap.querySelectorAll('[data-e]').forEach(b=>b.onclick=async()=>{const x=await api('lessonGet',{id:b.dataset.e});if(x.ok)lessonEditor(x.lesson)});
-  ap.querySelectorAll('[data-p]').forEach(b=>b.onclick=async()=>{const x=await api('lessonStatus',{id:b.dataset.p,status:b.dataset.s});toast(x.ok?'Done':x.error);adminLessons(ap)});
-  ap.querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this lesson? This cannot be undone.'))return;const x=await api('lessonDelete',{id:b.dataset.d});toast(x.ok?'Deleted':x.error);adminLessons(ap)})}
+  }
 /* ---------- lesson editor ---------- */
 function lessonEditor(L0,fresh){
   const ED=JSON.parse(JSON.stringify(L0));window.scrollTo(0,0);let showPrev=false;
