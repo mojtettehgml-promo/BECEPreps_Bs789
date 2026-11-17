@@ -94,7 +94,7 @@ export function cleanQuestion(p, draft = false) {
   if (t === "mcq") {
     const o = (Array.isArray(p.o) ? p.o : []).map((x) => clip(x, 300));
     if (o.length < 2 || o.length > 5 || o.some((x) => !x)) return { error: "A multiple-choice question needs 2 to 5 options, none empty." };
-    if (new Set(o.map(normQ)).size !== o.length) return { error: "Two options are the same." };
+    if (new Set(o.map((x) => x.replace(/\s+/g, " ").trim())).size !== o.length) return { error: "Two options are the same." };
     const c = Number(p.c); if (!Number.isInteger(c) || c < 0 || c >= o.length) return { error: "Mark the correct option." };
     return { out: { t, q, o, c, e: clip(p.e, 600) } };
   }

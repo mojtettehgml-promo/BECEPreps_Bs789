@@ -201,7 +201,7 @@ body.bgfun #app,body.bgfun header.hero,body.bgfun main{position:relative;z-index
 .cv{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.15;margin:0 .35em;padding:0 .35em;border-left:2px solid currentColor;border-right:2px solid currentColor;border-radius:6px;font-size:.92em}
 .figw{display:block;margin:10px auto;text-align:center}.figw img.pic{max-width:100%;max-height:none;height:auto;border-radius:10px;background:#fff}
 </style></head><body><div id="app"><p style="padding:24px">Loading…</p></div><script>
-const APP_VERSION='v1.7.0',APP_NAME='BECE Prep Zone';
+const APP_VERSION='v1.8.0',APP_NAME='BECE Prep Zone';
 const LIBS={mammoth:['/vendor/mammoth.browser.min.js'],pdf:['/vendor/pdf.min.js'],worker:['/vendor/pdf.worker.min.js']};
 const DECO={sci:['⚗️','🧪','🔭','⚛️','🧬','🌱','💡','🔬'],math:['➕','➗','✖️','📐','🔢','📏','🧮','⭐'],ga:['🥁','🎶','📖','✍️','🌍','🎵','🪘','⭐'],comp:['💻','🖱️','⌨️','🤖','💡','📡','🧩','⭐'],home:['⭐','🚀','🌈','📚','🎈','✨','🧠','🏆']};
 const deco=(k,soft)=>`<div class="deco${soft?' soft':''}" aria-hidden="true">${(DECO[k]||DECO.home).map(e=>`<i>${e}</i>`).join('')}</div>`;

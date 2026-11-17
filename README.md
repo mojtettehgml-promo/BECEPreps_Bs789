@@ -121,3 +121,10 @@ Learners tab (approve, see passwords with the vault key, new password, reset pro
 - Figures load on demand from `public/figs/m7|m8|m9.json`. Maths notation: stacked fractions, powers, roots, column vectors, vector arrows.
 - After uploading: Settings → "➕ Add the built-in lessons" once (adds 305 lessons; existing lessons are untouched).
 - Source books and the converter are in `tools/maths` (not needed to run the app).
+
+
+## v1.8.0 - Computing (JHS 1, 2, 3)
+- Computing subject added from the three Computing books: every unit has a "Get ready" lesson, one lesson per section (content, activities, step-by-step, examples, figures), a written/practical review reading lesson and a unit test. JHS 3 also has the BECE-style practice papers; each year has a glossary and vocabulary quiz.
+- Figures are static files in public/figs (c7, c8, c9).
+- Server: MCQ duplicate-option check now compares exact text (src/core.mjs).
+- After upload: admin Settings > "Add the built-in lessons".
